@@ -2,9 +2,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Short+Stack&display=swap" rel="stylesheet">
   <ion-page>
     <ion-content class="ion-padding bg-cream dark:bg-gray-900">
-      <div class="tailwind container mx-auto px-4 max-w-6xl">
+      <div class="tailwind container w-full flex flex-col sace-y-12 pb-4">
         <!-- Title with decorative border -->
-        <h1 class="text-5xl font-stack text-primary text-center font-bold mb-12 mt-8
+        <h1 class="text-4xl font-stack text-primary text-center font-bold mb-12 mt-8
                    dark:text-teal-400 drop-shadow-lg relative">
           <span class="relative inline-block px-8 py-2 border-4 border-primary dark:border-teal-400 
                        rounded-lg bg-white dark:bg-gray-800 shadow-lg">
@@ -13,111 +13,170 @@
         </h1>
         
         <!-- Story options with Font Awesome icons -->
-        <div class="flex flex-col sm:flex-row gap-6 max-w-2xl mx-auto mb-12 px-5" v-if="!submitted">
+        <div class="flex flex-col  gap-6 mx-auto mb-12 px-5" v-if="!submitted">
           <ion-button expand="block" @click="shuffleStory" :disabled="isLoading"
                     class="flex-1 h-14 rounded-full shadow-lg bg-teal-500 hover:bg-teal-600
                            transition-all duration-300 font-stack text-lg">
-            <font-awesome-icon :icon="['fas', 'shuffle']" class="mr-2 text-xl" />
+            <font-awesome-icon :icon="['fas', 'shuffle']" class="mr-2" />
             Random Story
           </ion-button>
           
           <ion-button expand="block" @click="showForm = !showForm" :disabled="isLoading"
                     class="flex-1 h-14 rounded-full shadow-lg bg-coral hover:bg-coral-dark
                            transition-all duration-300 font-stack text-lg">
-            <font-awesome-icon :icon="['fas', 'cog']" class="mr-2 text-xl" />
+            <font-awesome-icon :icon="['fas', 'cog']" class="mr-2" />
             {{ showForm ? 'Hide Settings' : 'Custom Story' }}
           </ion-button>
         </div>
 
-        <!-- Form with storybook styling -->
+        <!-- Form with modern styling -->
         <form v-if="showForm && !submitted" @submit.prevent="handleSubmit" 
-              class="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 space-y-6
-                     border-4 border-primary dark:border-teal-400 relative
-                     transition-all duration-300">
-          <!-- Decorative corners -->
-          <div class="absolute -top-2 -left-2 w-6 h-6 border-t-4 border-l-4 border-primary dark:border-teal-400 rounded-tl-lg"></div>
-          <div class="absolute -top-2 -right-2 w-6 h-6 border-t-4 border-r-4 border-primary dark:border-teal-400 rounded-tr-lg"></div>
-          <div class="absolute -bottom-2 -left-2 w-6 h-6 border-b-4 border-l-4 border-primary dark:border-teal-400 rounded-bl-lg"></div>
-          <div class="absolute -bottom-2 -right-2 w-6 h-6 border-b-4 border-r-4 border-primary dark:border-teal-400 rounded-br-lg"></div>
+              class="mx-auto bg-white/10 rounded-lg shadow-xl p-8 space-y-12 flex flex-col ">
+          <div class="border-b border-white/10 pb-12 flex flex-col">
+            <h2 class="text-base/7 font-semibold text-white text-center">Story Settings</h2>
+            <p class="mt-1 text-sm/6 text-gray-400 text-center">Create a unique story with these magical ingredients.</p>
 
-          <!-- Form fields with whimsical styling -->
-          <ion-item class="rounded-xl overflow-hidden border-2 border-primary dark:border-teal-400 bg-cream dark:bg-gray-700">
-            <ion-label position="floating" class="font-stack text-lg text-primary dark:text-teal-400">Hero Name</ion-label>
-            <ion-input v-model="heroName" required class="form-input font-comic text-lg"></ion-input>
-          </ion-item>
+            <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+              <!-- Hero Name -->
+              <div class="flex flex-col max-w-full">
+                <label for="hero-name" class="block text-sm/6 font-medium text-white">Hero Name</label>
+                <div class="mt-2 flex">
+                  <input type="text" 
+                         v-model="heroName"
+                         id="hero-name"
+                         required
+                         class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-white outline outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500" />
+                </div>
+              </div>
 
-          <ion-item class="rounded-xl overflow-hidden border-2 border-primary dark:border-teal-400 bg-cream dark:bg-gray-700">
-            <ion-label position="floating" class="font-stack text-lg text-primary dark:text-teal-400">Hero Gender</ion-label>
-            <ion-select v-model="heroGender" required class="form-input font-comic text-lg">
-              <ion-select-option value="boy">Boy</ion-select-option>
-              <ion-select-option value="girl">Girl</ion-select-option>
-              <ion-select-option value="neutral">Gender Neutral</ion-select-option>
-            </ion-select>
-          </ion-item>
+              <!-- Hero Gender -->
+              <div class="flex flex-col max-w-full">
+                <label for="hero-gender" class="block text-sm/6 font-medium text-white">Hero Gender</label>
+                <div class="mt-2 flex">
+                  <select v-model="heroGender"
+                          id="hero-gender"
+                          required
+                          class="block w-full appearance-none rounded-md bg-white/5 py-1.5 pl-3 pr-8 text-white outline outline-1 -outline-offset-1 outline-white/10 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500">
+                    <option value="boy">Boy</option>
+                    <option value="girl">Girl</option>
+                    <option value="neutral">Gender Neutral</option>
+                  </select>
+                  <ChevronDownIcon class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 size-5 text-gray-400" aria-hidden="true" />
+                </div>
+              </div>
 
-          <ion-item class="rounded-xl overflow-hidden border-2 border-primary dark:border-teal-400 bg-cream dark:bg-gray-700">
-            <ion-label position="floating" class="font-stack text-lg text-primary dark:text-teal-400">Setting</ion-label>
-            <ion-input v-model="setting" placeholder="e.g., magical forest, space station, underwater city"
-                       required class="form-input font-comic text-lg"></ion-input>
-          </ion-item>
+              <!-- Setting -->
+              <div class="flex flex-col max-w-full">
+                <label for="setting" class="block text-sm/6 font-medium text-white">Story Setting</label>
+                <div class="mt-2 flex">
+                  <input type="text"
+                         v-model="setting"
+                         id="setting"
+                         required
+                         placeholder="e.g., magical forest, space station, underwater city"
+                         class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-white outline outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
+                </div>
+              </div>
 
-          <ion-item class="rounded-xl overflow-hidden border-2 border-primary dark:border-teal-400 bg-cream dark:bg-gray-700">
-            <ion-label position="floating" class="font-stack text-lg text-primary dark:text-teal-400">Hero's Special Quality</ion-label>
-            <ion-input v-model="specialQuality" placeholder="e.g., can talk to animals, very brave, super smart"
-                       required class="form-input font-comic text-lg"></ion-input>
-          </ion-item>
+              <!-- Special Quality -->
+              <div class="flex flex-col max-w-full">
+                <label for="special-quality" class="block text-sm/6 font-medium text-white">Hero's Special Quality</label>
+                <div class="mt-2 flex">
+                  <input type="text"
+                         v-model="specialQuality"
+                         id="special-quality"
+                         required
+                         placeholder="e.g., can talk to animals, very brave, super smart"
+                         class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-white outline outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
+                </div>
+              </div>
 
-          <ion-item class="rounded-xl overflow-hidden border-2 border-primary dark:border-teal-400 bg-cream dark:bg-gray-700">
-            <ion-label position="floating" class="font-stack text-lg text-primary dark:text-teal-400">Story Theme</ion-label>
-            <ion-select v-model="theme" required class="form-input font-comic text-lg">
-              <ion-select-option value="friendship">Friendship</ion-select-option>
-              <ion-select-option value="courage">Courage</ion-select-option>
-              <ion-select-option value="kindness">Kindness</ion-select-option>
-              <ion-select-option value="perseverance">Never Give Up</ion-select-option>
-              <ion-select-option value="creativity">Creative Problem Solving</ion-select-option>
-            </ion-select>
-          </ion-item>
+              <!-- Theme -->
+              <div class="flex flex-col max-w-full">
+                <label for="theme" class="block text-sm/6 font-medium text-white">Story Theme</label>
+                <div class="mt-2 flex">
+                  <select v-model="theme"
+                          id="theme"
+                          required
+                          class="block w-full appearance-none rounded-md bg-white/5 py-1.5 pl-3 pr-8 text-white outline outline-1 -outline-offset-1 outline-white/10 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500">
+                    <option value="friendship">Friendship</option>
+                    <option value="courage">Courage</option>
+                    <option value="kindness">Kindness</option>
+                    <option value="perseverance">Never Give Up</option>
+                    <option value="creativity">Creative Problem Solving</option>
+                  </select>
+                  <ChevronDownIcon class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 size-5 text-gray-400" aria-hidden="true" />
+                </div>
+              </div>
 
-          <ion-item class="rounded-xl overflow-hidden border-2 border-primary dark:border-teal-400 bg-cream dark:bg-gray-700">
-            <ion-label position="floating" class="font-stack text-lg text-primary dark:text-teal-400">Language / Langue</ion-label>
-            <ion-select v-model="language" required class="form-input font-comic text-lg">
-              <ion-select-option value="french">Français</ion-select-option>
-              <ion-select-option value="english">English</ion-select-option>
-              <ion-select-option value="spanish">Español</ion-select-option>
-            </ion-select>
-          </ion-item>
+              <!-- Language -->
+              <div class="flex flex-col max-w-full">
+                <label for="language" class="block text-sm/6 font-medium text-white">Language / Langue</label>
+                <div class="mt-2 flex">
+                  <select v-model="language"
+                          id="language"
+                          required
+                          class="block w-full appearance-none rounded-md bg-white/5 py-1.5 pl-3 pr-8 text-white outline outline-1 -outline-offset-1 outline-white/10 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500">
+                    <option value="french">Français</option>
+                    <option value="english">English</option>
+                    <option value="spanish">Español</option>
+                  </select>
+                  <ChevronDownIcon class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 size-5 text-gray-400" aria-hidden="true" />
+                </div>
+              </div>
 
-          <ion-item class="rounded-xl overflow-hidden border-2 border-primary dark:border-teal-400 bg-cream dark:bg-gray-700">
-            <ion-label position="floating" class="font-stack text-lg text-primary dark:text-teal-400">Additional Details</ion-label>
-            <ion-textarea v-model="additionalDetails" rows="3"
-                          placeholder="Any other details about your hero or the story"
-                          class="form-input font-comic text-lg"></ion-textarea>
-          </ion-item>
+              <!-- Additional Details -->
+              <div class="flex flex-col max-w-full">
+                <label for="additional-details" class="block text-sm/6 font-medium text-white">Additional Details</label>
+                <div class="mt-2 flex h-56">
+                  <textarea v-model="additionalDetails"
+                            id="additional-details"
+                            rows="3"
+                            placeholder="Any other details about your hero or the story"
+                            class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-white outline outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
+                </div>
+              </div>
 
-          <ion-item class="rounded-xl overflow-hidden border-2 border-primary dark:border-teal-400 bg-cream dark:bg-gray-700">
-            <ion-label position="floating" class="font-stack text-lg text-primary dark:text-teal-400">Illustration Style</ion-label>
-            <ion-select v-model="illustrationStyle" required class="form-input font-comic text-lg">
-              <ion-select-option value="whimsical">Whimsical</ion-select-option>
-              <ion-select-option value="cartoon">Cartoon</ion-select-option>
-              <ion-select-option value="watercolor">Watercolor</ion-select-option>
-              <ion-select-option value="modern">Modern</ion-select-option>
-              <ion-select-option value="manga">Manga</ion-select-option>
-            </ion-select>
-          </ion-item>
+              <!-- Illustration Style -->
+              <div class="flex flex-col max-w-full">
+                <label for="illustration-style" class="block text-sm/6 font-medium text-white">Illustration Style</label>
+                <div class="mt-2 flex">
+                  <select v-model="illustrationStyle"
+                          id="illustration-style"
+                          required
+                          class="block w-full appearance-none rounded-md bg-white/5 py-1.5 pl-3 pr-8 text-white outline outline-1 -outline-offset-1 outline-white/10 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500">
+                    <option value="whimsical">Whimsical</option>
+                    <option value="cartoon">Cartoon</option>
+                    <option value="watercolor">Watercolor</option>
+                    <option value="modern">Modern</option>
+                    <option value="manga">Manga</option>
+                  </select>
+                  <ChevronDownIcon class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 size-5 text-gray-400" aria-hidden="true" />
+                </div>
+              </div>
+            </div>
+          </div>
 
-          <ion-button type="submit" expand="block"
-                    class="h-14 rounded-full shadow-xl mt-8 font-stack text-xl
-                           bg-primary dark:bg-teal-500 hover:bg-primary-dark dark:hover:bg-teal-600
-                           transition-all duration-300">
-            {{ isLoading ? 'Creating Story...' : 'Create a Story' }}
-          </ion-button>
+          <!-- Form Actions -->
+          <div class="mt-6 flex items-center justify-end gap-x-6">
+            <button type="button" 
+                    @click="showForm = false"
+                    class="text-sm/6 font-semibold text-white hover:text-gray-300">
+              Cancel
+            </button>
+            <button type="submit"
+                    :disabled="isLoading"
+                    class="rounded-md bg-indigo-500 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
+              {{ isLoading ? 'Creating Story...' : 'Create Story' }}
+            </button>
+          </div>
         </form>
 
         <!-- Story display with book-like styling -->
         <div v-if="submitted && storyPages.length > 0 && !isLoading" 
-             class="story-container max-w-6xl mx-auto bg-white dark:bg-gray-800 
+             class="story-conmax-w-full flex flex-col bg-white dark:bg-gray-800 px-8
                     rounded-3xl shadow-2xl overflow-hidden transition-all duration-300
-                    border-4 border-primary dark:border-teal-400">
+                    border-4 border-primary dark:border-teal-400 pb-8">
           <!-- Story navigation with Font Awesome icons -->
           <div class="flex items-center justify-center gap-8 p-6 bg-cream dark:bg-gray-700
                       border-t-4 border-primary dark:border-teal-400 mt-8">
@@ -141,27 +200,27 @@
           </div>
 
           <!-- Story content with decorative borders -->
-          <div class="p-8 relative">
+          <div class="flex flex-col">
             <!-- Title styling -->
             <h2 v-if="currentPage === 0" 
-                class="text-4xl font-stack text-primary text-center mb-12
-                       dark:text-teal-400 drop-shadow-lg">
-              <span class="relative inline-block px-8 py-2 border-4 border-primary dark:border-teal-400 
-                           rounded-lg bg-white dark:bg-gray-800 shadow-lg">
+                class="text-3xl font-stack text-primary text-center mb-12
+                       dark:text-teal-400 ">
+              <span class="mx-auto block px-8 py-2 border-4 border-primary dark:border-teal-400 
+                           rounded-lg bg-white dark:bg-gray-800">
                 {{ storyTitle }}
               </span>
             </h2>
             
             <!-- Story layout grid -->
-            <div class="grid lg:grid-cols-2 gap-12 max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-2 gap-12 max-w-7xl mx-auto items-center">
               <!-- Image section -->
-              <div class="story-image-container order-2 lg:order-1">
+              <div class="story-image-container">
                 <div v-if="pageImages[currentPage]" 
-                     class="rounded-3xl overflow-hidden shadow-xl border-4 border-primary dark:border-teal-400
-                            transition-transform duration-300 hover:scale-105 bg-white">
+                     class="rounded-3xl overflow-hidden flex border-4 border-primary dark:border-teal-400
+                            bg-white shadow-xl">
                   <img :src="pageImages[currentPage]" 
                        :alt="`Illustration for page ${currentPage + 1}`"
-                       class="w-full h-auto"
+                       class="w-full h-auto "
                        @error="pageImages[currentPage] = null">
                 </div>
                 <div v-else 
@@ -178,24 +237,19 @@
               </div>
 
               <!-- Text section -->
-              <div class="story-text-container order-1 lg:order-2">
+              <div class="story-text-container order-1 lg:order-2 flex flex-col bg-cream rounded-3xl p-8 text-justify shadow-xl">
                 <div class="relative">
-                  <!-- Decorative top border -->
-                  <div class="absolute -top-4 left-0 right-0 h-4 bg-repeat-x"
-                       style="background-image: url('/images/floral-border.png')"></div>
+                
                   
                   <!-- Story text -->
-                  <div class="bg-cream dark:bg-gray-700 p-8 rounded-3xl shadow-lg
-                              border-4 border-primary dark:border-teal-400">
-                    <p class="font-comic text-xl leading-relaxed text-gray-800 dark:text-gray-200
-                              whitespace-pre-wrap">
+                  <div class="p-4  
+                              border-4 border-primary ">
+                    <p class="text-xl text-gray-800 dark:text-gray-200">
                       {{ storyPages[currentPage] }}
                     </p>
                   </div>
                   
-                  <!-- Decorative bottom border -->
-                  <div class="absolute -bottom-4 left-0 right-0 h-4 bg-repeat-x transform rotate-180"
-                       style="background-image: url('/images/floral-border.png')"></div>
+                
                 </div>
               </div>
             </div>
@@ -204,14 +258,14 @@
 
         <!-- Floating audio control -->
         <div v-if="submitted && storyPages.length > 0 && !isLoading" 
-             class="fixed top-6 right-6 z-50 md:top-8 md:right-8">
+             class="fixed top-6 right-6 z-50 md:top-8 md:right-8 z-10">
           <ion-button @click="readPage"
                     :color="isSpeaking ? 'danger' : 'primary'"
-                    class="w-14 h-14 rounded-full shadow-lg hover:shadow-xl
+                    class="w-14 h-14 block rounded-full text-base shadow-lg hover:shadow-xl
                            transition-all duration-300"
                     :disabled="!isAudioReady || isCurrentPageLoading">
-            <font-awesome-icon :icon="['fas', isSpeaking ? 'volume-mute' : isAudioReady ? 'volume-high' : 'cloud-arrow-down']"
-                             class="text-2xl" />
+            <font-awesome-icon :icon="['fas', isSpeaking ? 'volume-xmark' : isAudioReady ? 'volume-high' : 'cloud-arrow-down']"
+                             class="z-20" />
           </ion-button>
         </div>
 
@@ -249,29 +303,35 @@ import {
 } from '@ionic/vue';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { 
-  faRandom, 
+  faShuffle,
   faCog, 
   faChevronLeft, 
   faChevronRight, 
   faSpinner,
-  faVolumeUp,
-  faVolumeMute,
-  faCloudDownloadAlt
+  faVolumeHigh,
+  faVolumeXmark,
+  faCloudArrowDown,
+  faArrowLeft,
+  faArrowRight
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useRouter } from 'vue-router';
 import { Capacitor } from '@capacitor/core';
+import { useTTSStore } from '@/stores/ttsStore';
+import { ChevronDownIcon } from '@heroicons/vue/16/solid'
 
-// Add Font Awesome icons to library
+// Add ALL Font Awesome icons to library
 library.add(
-  faRandom, 
+  faShuffle,
   faCog, 
   faChevronLeft, 
   faChevronRight, 
   faSpinner,
-  faVolumeUp,
-  faVolumeMute,
-  faCloudDownloadAlt
+  faVolumeHigh,
+  faVolumeXmark,
+  faCloudArrowDown,
+  faArrowLeft,
+  faArrowRight
 );
 
 export default {
@@ -291,6 +351,7 @@ export default {
   },
   setup() {
     const router = useRouter();
+    const ttsStore = useTTSStore();
     // Pre-filled test data
     const heroName = ref('Luna');
     const heroGender = ref('girl');
@@ -307,19 +368,9 @@ export default {
     const pageImages = ref({});
     const storyTitle = ref('');
     const isGeneratingImage = ref(false);
-    const isSpeaking = ref(false);
-    const speechSynthesis = typeof window !== 'undefined' ? window.speechSynthesis : null;
-    let utterance = null;
     const illustrationStyle = ref('whimsical'); // Default style
     const shouldContinueReading = ref(false);
     const showForm = ref(false);
-    
-    // Add audio cache and pre-buffering functionality
-    const audioCache = ref<{ [key: number]: Blob }>({});
-    const isPreloading = ref<{ [key: number]: boolean }>({});
-    
-    // Add a ref to store the current audio element
-    const currentAudio = ref<HTMLAudioElement | null>(null);
     
     const getVoiceId = (lang: string) => {
       const voices = {
@@ -415,7 +466,7 @@ Format the description to be used as a reference for consistent illustration acr
             'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
           },
           body: JSON.stringify({
-            model: "gpt-4o",
+            model: "gpt-4o-mini",
             messages: [{
               role: "user",
               content: characterPrompt
@@ -477,7 +528,7 @@ Provide the description in a single, clear paragraph focused only on the visual 
             'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
           },
           body: JSON.stringify({
-            model: "gpt-4o",
+            model: "gpt-4o-mini",
             messages: [{
               role: "user",
               content: analysisPrompt
@@ -746,7 +797,7 @@ Requirements:
               'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
             },
             body: JSON.stringify({
-              model: "gpt-4o",
+              model: "gpt-4o-mini",
               messages: [{
                 role: "user",
                 content: prompt
@@ -840,13 +891,13 @@ Requirements:
     // Update the nextPage function
     const nextPage = async () => {
       // Use shouldContinueReading instead of checking isSpeaking
-      const wasReading = shouldContinueReading.value || isSpeaking.value;
+      const wasReading = shouldContinueReading.value || ttsStore.isSpeaking;
       console.log('nextPage - Was reading:', wasReading);
       console.log('nextPage - Current page before:', currentPage.value);
       
       // Don't stop speaking if we're continuing to the next page
       if (!wasReading) {
-        stopSpeaking();
+        ttsStore.stopSpeaking();
       }
 
       if (currentPage.value < storyPages.value.length - 1) {
@@ -872,7 +923,7 @@ Requirements:
             } catch (error) {
               console.error('Failed to resume reading:', error);
               shouldContinueReading.value = false;
-              isSpeaking.value = false;
+              ttsStore.isSpeaking = false;
             }
           }, 100);
         }
@@ -884,8 +935,8 @@ Requirements:
 
     // Update the previousPage function
     const previousPage = () => {
-      const wasReading = isSpeaking.value;
-      stopSpeaking();
+      const wasReading = ttsStore.isSpeaking;
+      ttsStore.stopSpeaking();
       if (currentPage.value > 0) {
         currentPage.value--;
         // If we were reading, continue reading on the new page
@@ -895,230 +946,69 @@ Requirements:
       }
     };
 
-    // Add a function to get the appropriate model for each language
-    const getModelId = (lang: string) => {
-      switch (lang) {
-        case 'french':
-          return 'eleven_multilingual_v2';  // Better for French
-        case 'spanish':
-          return 'eleven_multilingual_v2';  // Better for Spanish
-        case 'english':
-          return 'eleven_monolingual_v1';   // Optimized for English
-        default:
-          return 'eleven_multilingual_v2';
-      }
-    };
-
-    // Function to fetch audio for a specific page
-    const fetchAudioForPage = async (pageIndex: number) => {
-      if (audioCache.value[pageIndex] || isPreloading.value[pageIndex]) {
-        return;
-      }
-
-      try {
-        isPreloading.value[pageIndex] = true;
-        const text = storyPages.value[pageIndex];
-        if (!text) return;
-
-        const apiKey = verifyApiKey();
-        const voiceId = getVoiceId(language.value);
-        
-        const requestBody = {
-          text: text,
-          model_id: getModelId(language.value),
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-            style: 0.7,
-            speaker_boost: true
-          }
-        };
-
-        const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceId, {
-          method: 'POST',
-          headers: {
-            'Accept': 'audio/mpeg',
-            'Content-Type': 'application/json',
-            'xi-api-key': apiKey,
-            'User-Agent': 'Dreamweaver/1.0',
-            'Accept-Language': language.value === 'french' ? 'fr-FR' : 
-                             language.value === 'spanish' ? 'es-ES' : 'en-US'
-          },
-          body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch audio for page ${pageIndex + 1}`);
+    // Add this watch effect to handle speech completion
+    watch(() => ttsStore.isSpeaking, async (newValue, oldValue) => {
+      if (oldValue && !newValue && shouldContinueReading.value) {
+        // Speech finished and we should continue reading
+        if (currentPage.value < storyPages.value.length - 1) {
+          await nextPage();
+        } else {
+          // Reset when we reach the end
+          shouldContinueReading.value = false;
         }
-
-        const audioBlob = await response.blob();
-        audioCache.value[pageIndex] = audioBlob;
-        console.log(`Pre-loaded audio for page ${pageIndex + 1}`);
-      } catch (error) {
-        console.error(`Error pre-loading audio for page ${pageIndex + 1}:`, error);
-      } finally {
-        isPreloading.value[pageIndex] = false;
       }
-    };
-
-    // Pre-fetch next page's audio
-    const preloadNextPageAudio = () => {
-      const nextPage = currentPage.value + 1;
-      if (nextPage < storyPages.value.length) {
-        fetchAudioForPage(nextPage);
-      }
-    };
+    });
 
     // Update the readPage function
     const readPage = async () => {
-      // Only stop if we're speaking and not continuing to next page
-      if (isSpeaking.value && !shouldContinueReading.value) {
-        stopSpeaking();
-        return;
-      }
-
-      const pageIndex = currentPage.value;
-      if (!storyPages.value[pageIndex]) {
-        console.error('No text content found for page:', pageIndex);
+      if (ttsStore.isSpeaking) {
+        shouldContinueReading.value = false;
+        ttsStore.stopSpeaking();
         return;
       }
 
       try {
-        // Reset the flags at the start of new reading
-        shouldContinueReading.value = false;
-        isSpeaking.value = true;
-
-        // Rest of the function remains the same...
-        let audioBlob;
-        if (audioCache.value[pageIndex]) {
-          console.log(`Using cached audio for page ${pageIndex + 1}`);
-          audioBlob = audioCache.value[pageIndex];
-        } else {
-          console.log(`Fetching audio for page ${pageIndex + 1}`);
-          await fetchAudioForPage(pageIndex);
-          audioBlob = audioCache.value[pageIndex];
-        }
-
-        if (!audioBlob) {
-          throw new Error('Failed to get audio content');
-        }
-
-        const url = URL.createObjectURL(audioBlob);
-        const audio = new Audio(url);
-        currentAudio.value = audio;  // Store the audio element
-        
-        audio.onloadedmetadata = () => {
-          console.log('Audio duration:', audio.duration, 'seconds');
-        };
-        
-        audio.onended = () => {
-          console.log('Audio playback completed');
-          currentAudio.value = null;
-          console.log('Current page:', currentPage.value);
-          console.log('Total pages:', storyPages.value.length);
-          
-          if (currentPage.value < storyPages.value.length - 1) {
-            console.log('Scheduling next page transition');
-            // Pre-fetch the next-next page's audio
-            const nextNextPage = currentPage.value + 2;
-            if (nextNextPage < storyPages.value.length) {
-              fetchAudioForPage(nextNextPage);
-            }
-            
-            // Set the flag before transitioning
-            shouldContinueReading.value = true;
-            isSpeaking.value = true;  // Keep speaking state true during transition
-            
-            setTimeout(() => {
-              console.log('Executing next page transition');
-              nextPage();
-            }, 1000);
-          } else {
-            console.log('Reached end of story - stopping playback');
-            shouldContinueReading.value = false;
-            isSpeaking.value = false;
-          }
-          URL.revokeObjectURL(url);
-        };
-
-        // Add more audio event handlers for debugging
-        audio.onpause = () => console.log('Audio paused');
-        audio.onplay = () => console.log('Audio started playing');
-        audio.onstalled = () => console.log('Audio playback stalled');
-        audio.onsuspend = () => console.log('Audio loading suspended');
-        audio.onwaiting = () => console.log('Audio waiting for data');
-        audio.onabort = () => console.log('Audio playback aborted');
-
-        // Add loading event handlers
-        audio.onloadstart = () => console.log('Audio loading started');
-        audio.oncanplay = () => console.log('Audio can start playing');
-        audio.onplaying = () => console.log('Audio started playing');
-
-        console.log('Attempting to play audio...');
-        await audio.play();
-        console.log('Audio play command issued successfully');
-
-        // Pre-fetch next page's audio while current page is playing
-        preloadNextPageAudio();
-
+        shouldContinueReading.value = true;
+        await ttsStore.playAudio(
+          currentPage.value,
+          storyPages.value[currentPage.value],
+          language.value
+        );
       } catch (error) {
-        currentAudio.value = null;
-        console.error('Speech synthesis error:', error);
-        isSpeaking.value = false;
+        console.error('Failed to read page:', error);
         shouldContinueReading.value = false;
-        alert('Speech synthesis failed. Please try again.');
+        alert('Failed to generate speech. Please try again.');
       }
     };
 
-    // Update the stopSpeaking function
-    const stopSpeaking = () => {
-      console.log('stopSpeaking called - Previous states:', {
-        isSpeaking: isSpeaking.value,
-        shouldContinueReading: shouldContinueReading.value
-      });
-      
-      // Stop and cleanup current audio if it exists
-      if (currentAudio.value) {
-        currentAudio.value.pause();
-        currentAudio.value.currentTime = 0;
-        currentAudio.value.src = '';
-        currentAudio.value = null;
+    // Watch for page changes to preload audio
+    watch(storyPages, async (newPages) => {
+      if (newPages.length > 0) {
+        // Pre-fetch first two pages
+        await ttsStore.preloadAudio(0, newPages[0], language.value);
+        if (newPages.length > 1) {
+          ttsStore.preloadAudio(1, newPages[1], language.value);
+        }
       }
-
-      // Only reset flags if we're not in auto-play mode
-      if (!shouldContinueReading.value) {
-        isSpeaking.value = false;
-      }
-      
-      console.log('stopSpeaking completed - New states:', {
-        isSpeaking: isSpeaking.value,
-        shouldContinueReading: shouldContinueReading.value
-      });
-    };
-
-    // Update the verifyApiKey function
-    const verifyApiKey = () => {
-      const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
-      if (!apiKey) {
-        throw new Error('ElevenLabs API key is missing. Please check your .env file.');
-      }
-      // Only check if it's exactly the placeholder value
-      if (apiKey === 'your-api-key-here') {
-        throw new Error('Please replace the placeholder API key with your actual ElevenLabs API key.');
-      }
-      return apiKey;
-    };
-
-    // Add a computed property to show available voices (for debugging)
-    const availableVoices = computed(() => {
-      return speechSynthesis.getVoices().map(voice => ({
-        name: voice.name,
-        lang: voice.lang,
-        isNeural: voice.name.includes('Neural')
-      }));
     });
 
-    // Update the shuffleStory function
+    // Clean up on unmount
+    onUnmounted(() => {
+      ttsStore.stopSpeaking();
+    });
+
+    // Update computed properties
+    const isAudioReady = computed(() => {
+      return !!ttsStore.audioCache[currentPage.value];
+    });
+
+    const isCurrentPageLoading = computed(() => {
+      return ttsStore.isPreloading[currentPage.value] || false;
+    });
+
+    const isSpeaking = computed(() => ttsStore.isSpeaking);
+
+    // Add the shuffleStory function
     const shuffleStory = async () => {
       try {
         console.log('Starting random story settings generation...');
@@ -1131,7 +1021,7 @@ Requirements:
             'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
           },
           body: JSON.stringify({
-            model: "gpt-4o",
+            model: "gpt-4o-mini",
             messages: [{
               role: "user",
               content: `Generate random, creative settings for a children's story in French. Return as JSON:
@@ -1151,52 +1041,12 @@ Requirements:
           })
         });
 
-        console.log('Random settings API response status:', response.status);
-
         if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Random settings API error:', errorData);
-          throw new Error(`Failed to get random settings: ${response.status} - ${JSON.stringify(errorData)}`);
+          throw new Error(`Failed to get random settings: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('Random settings API response received:', {
-          hasChoices: !!data.choices,
-          choicesLength: data.choices?.length,
-          contentLength: data.choices?.[0]?.message?.content?.length
-        });
-
-        let settings;
-        try {
-          settings = JSON.parse(data.choices[0].message.content);
-          console.log('Successfully parsed random settings:', settings);
-          
-          // Validate the required fields
-          const requiredFields = ['heroName', 'heroGender', 'setting', 'specialQuality', 'theme', 'additionalDetails'];
-          const missingFields = requiredFields.filter(field => !settings[field]);
-          
-          if (missingFields.length > 0) {
-            throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
-          }
-
-          // Validate theme is one of the allowed values
-          const validThemes = ['friendship', 'courage', 'kindness', 'perseverance', 'creativity'];
-          if (!validThemes.includes(settings.theme)) {
-            settings.theme = validThemes[0]; // Default to friendship if invalid
-          }
-
-          // Validate gender is one of the allowed values
-          if (!['boy', 'girl'].includes(settings.heroGender)) {
-            settings.heroGender = 'boy'; // Default to boy if invalid
-          }
-
-        } catch (parseError) {
-          console.error('Failed to parse random settings:', {
-            error: parseError,
-            rawContent: data.choices[0].message.content
-          });
-          throw new Error('Failed to parse random settings response');
-        }
+        const settings = JSON.parse(data.choices[0].message.content);
 
         // Update the form values
         heroName.value = settings.heroName;
@@ -1207,55 +1057,14 @@ Requirements:
         additionalDetails.value = settings.additionalDetails;
         language.value = 'french'; // Always set to French
 
-        console.log('Random settings applied, starting story generation...');
-        
         // Automatically submit with the random settings
         await handleSubmit();
-
       } catch (error) {
-        console.error('Random settings generation error:', {
-          error,
-          message: error.message,
-          stack: error.stack
-        });
-        
-        // Check API key
-        if (!import.meta.env.VITE_OPENAI_API_KEY) {
-          console.error('OpenAI API key is missing');
-        }
-        
+        console.error('Random settings generation error:', error);
         alert('Failed to generate random story settings. Please try again.');
         isLoading.value = false;
       }
     };
-
-    // Start pre-loading when story is generated
-    watch(storyPages, async (newPages) => {
-      if (newPages.length > 0) {
-        // Pre-fetch first two pages
-        await fetchAudioForPage(0);
-        if (newPages.length > 1) {
-          fetchAudioForPage(1);
-        }
-      }
-    });
-
-    // Clean up audio when component is unmounted
-    onUnmounted(() => {
-      stopSpeaking();
-      audioCache.value = {};
-      isPreloading.value = {};
-    });
-
-    // Add a computed property to check if audio is ready
-    const isAudioReady = computed(() => {
-      return audioCache.value[currentPage.value] !== undefined;
-    });
-
-    // Add a computed property to check if audio is loading
-    const isCurrentPageLoading = computed(() => {
-      return isPreloading.value[currentPage.value] || false;
-    });
 
     return { 
       heroName,
@@ -1277,16 +1086,12 @@ Requirements:
       isGeneratingImage,
       nextPage,
       previousPage,
-      isSpeaking,
       readPage,
-      stopSpeaking,
-      availableVoices,
-      shouldContinueReading,
       showForm,
       shuffleStory,
       isAudioReady,
       isCurrentPageLoading,
-      currentAudio
+      isSpeaking
     };
   }
 };

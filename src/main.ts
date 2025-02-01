@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router';
 import { IonicVue } from '@ionic/vue';
+import { createPinia } from 'pinia'
 
 /* Font Awesome */
 import { library } from '@fortawesome/fontawesome-svg-core'
@@ -16,6 +17,9 @@ import {
   faVolumeMute,
   faCloudArrowDown
 } from '@fortawesome/free-solid-svg-icons'
+
+// Create Pinia instance
+const pinia = createPinia()
 
 // Add icons to library
 library.add(
@@ -68,6 +72,7 @@ import '@ionic/vue/css/palettes/dark.system.css';
 const app = createApp(App)
   .use(IonicVue)
   .use(router)
+  .use(pinia)
   .component('font-awesome-icon', FontAwesomeIcon);
   
 router.isReady().then(() => {
