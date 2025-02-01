@@ -3,6 +3,38 @@ import App from './App.vue'
 import router from './router';
 import { IonicVue } from '@ionic/vue';
 
+/* Font Awesome */
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { 
+  faArrowLeft,
+  faArrowRight,
+  faCog,
+  faShuffle,
+  faSpinner,
+  faVolumeHigh,
+  faVolumeMute,
+  faCloudArrowDown
+} from '@fortawesome/free-solid-svg-icons'
+
+// Add icons to library
+library.add(
+  faArrowLeft,
+  faArrowRight,
+  faCog,
+  faShuffle,
+  faSpinner,
+  faVolumeHigh,
+  faVolumeMute,
+  faCloudArrowDown
+)
+
+/* Import global styles first */
+import './styles/global.css'
+
+/* Import Tailwind CSS first */
+import './styles/tailwind.css'
+
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';
 
@@ -19,6 +51,9 @@ import '@ionic/vue/css/text-transformation.css';
 import '@ionic/vue/css/flex-utils.css';
 import '@ionic/vue/css/display.css';
 
+/* Theme variables */
+import './theme/variables.css';
+
 /**
  * Ionic Dark Mode
  * -----------------------------------------------------
@@ -30,12 +65,10 @@ import '@ionic/vue/css/display.css';
 /* @import '@ionic/vue/css/palettes/dark.class.css'; */
 import '@ionic/vue/css/palettes/dark.system.css';
 
-/* Theme variables */
-import './theme/variables.css';
-
 const app = createApp(App)
   .use(IonicVue)
-  .use(router);
+  .use(router)
+  .component('font-awesome-icon', FontAwesomeIcon);
   
 router.isReady().then(() => {
   app.mount('#app');

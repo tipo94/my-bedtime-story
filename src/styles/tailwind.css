@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --ion-color-primary: theme('colors.blue.600');
+    --ion-color-secondary: theme('colors.purple.600');
+    /* Add other color variables as needed */
+  }
+}
+
+/* Custom Tailwind components */
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white rounded-full px-6 py-2 shadow-md hover:shadow-lg transition-all duration-200 !important;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-white rounded-full px-6 py-2 shadow-md hover:shadow-lg transition-all duration-200 !important;
+  }
+  
+  .form-input {
+    @apply rounded-lg border-gray-300 shadow-sm focus:border-primary focus:ring-primary !important;
+  }
+  
+  .story-container {
+    @apply bg-white dark:bg-dark rounded-xl shadow-lg p-6 max-w-4xl mx-auto !important;
+  }
+  
+  .story-text {
+    @apply font-comic text-lg leading-relaxed !important;
+  }
+  
+  .story-image {
+    @apply rounded-xl shadow-lg transition-transform duration-200 hover:scale-105 !important;
+  }
+
+  /* Add Ionic overrides */
+  ion-content {
+    @apply bg-gray-50 dark:bg-gray-900;
+  }
+
+  ion-item {
+    @apply bg-transparent;
+  }
+
+  ion-button {
+    @apply font-semibold;
+  }
+}
+
+@layer utilities {
+  .ion-padding {
+    --padding-start: 1rem;
+    --padding-end: 1rem;
+    --padding-top: 1rem;
+    --padding-bottom: 1rem;
+  }
+} 

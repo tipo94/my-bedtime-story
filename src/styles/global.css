@@ -1,0 +1,46 @@
+@import './tailwind.css';
+
+/* Force Tailwind utilities to take precedence */
+#app .ion-page [class*="text-"],
+#app .ion-page [class*="bg-"],
+#app .ion-page [class*="font-"],
+#app .ion-page [class*="p-"],
+#app .ion-page [class*="m-"],
+#app .ion-page [class*="w-"],
+#app .ion-page [class*="h-"],
+#app .ion-page [class*="flex"],
+#app .ion-page [class*="grid"],
+#app .ion-page [class*="gap-"],
+#app .ion-page [class*="rounded"],
+#app .ion-page [class*="shadow"] {
+  all: revert;
+}
+
+#app .ion-page [class*="text-"],
+#app .ion-page [class*="bg-"],
+#app .ion-page [class*="font-"],
+#app .ion-page [class*="p-"],
+#app .ion-page [class*="m-"],
+#app .ion-page [class*="w-"],
+#app .ion-page [class*="h-"],
+#app .ion-page [class*="flex"],
+#app .ion-page [class*="grid"],
+#app .ion-page [class*="gap-"],
+#app .ion-page [class*="rounded"],
+#app .ion-page [class*="shadow"] {
+  all: unset;
+}
+
+/* Apply Tailwind classes with higher specificity */
+#app .ion-page .tailwind {
+  @apply font-comic text-gray-800 dark:text-gray-200;
+}
+
+/* Force color inheritance */
+#app .ion-page [class*="text-"] {
+  color: inherit;
+}
+
+#app .ion-page [class*="bg-"] {
+  background-color: inherit;
+} 
