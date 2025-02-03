@@ -44,11 +44,8 @@
           <!-- Back Button -->
           <button @click="goBack" 
                   class="mb-8 flex items-center gap-1 text-[#030303] hover:text-gray-600 transition-colors duration-200">
-            <ion-icon :icon="chevronBackOutline" 
-                      size="small"
-                      style="--ionicon-stroke-width: 48px;"
-                      aria-hidden="true" />
-            <span class="text-sm">Back</span>
+            <font-awesome-icon :icon="['fas', 'arrow-left']" class="text-sm" />
+            <span class="text-xs">Back</span>
           </button>
           
           <!-- Character Selection Screen -->
@@ -237,11 +234,89 @@
             
             <!-- Continue Button in Optional Fields Screen -->
             <div class="w-full px-4 flex">
-              <button @click="startStoryCreation"
+              <button 
                       class="w-full p-3 rounded-lg bg-[#eeb163] hover:bg-[#e5a754]
-                             text-white text-lg font-medium">
+                             text-white text-lg font-medium text-center"
+                      @click="currentStep = 'style'">
                 Next
               </button>
+            </div>
+          </div>
+
+          <!-- Illustration Style Selection Screen -->
+          <div v-if="currentStep === 'style'" class="flex flex-col items-center px-4">
+            <h2 class="text-2xl font-medium text-[#030303] mb-2">Choose Illustration Style</h2>
+            <p class="text-[#030303] text-center mb-8">Select the art style for your story's illustrations</p>
+            
+            <div class="grid grid-cols-2 gap-4 w-full">
+              <!-- Cartoon -->
+              <button @click="selectStyle('cartoon')"
+                      class="aspect-square rounded-lg bg-[#eeb163] hover:bg-[#e5a754] 
+                             flex flex-col items-center justify-center p-4 text-white">
+                <div class="w-16 h-16 bg-white/20 rounded-lg mb-2 flex items-center justify-center">
+                  <img src="@/assets/cartoon.webp" alt="Cartoon Style" class="w-12 h-12 object-contain" />
+                </div>
+                <span class="text-lg font-medium text-center">Cartoon</span>
+              </button>
+              
+              <!-- Manga -->
+              <button @click="selectStyle('manga')"
+                      class="aspect-square rounded-lg bg-[#eeb163] hover:bg-[#e5a754] 
+                             flex flex-col items-center justify-center p-4 text-white">
+                <div class="w-16 h-16 bg-white/20 rounded-lg mb-2 flex items-center justify-center">
+                  <img src="@/assets/manga.webp" alt="Manga Style" class="w-12 h-12 object-contain" />
+                </div>
+                <span class="text-lg font-medium text-center">Manga</span>
+              </button>
+              
+              <!-- Watercolor -->
+              <button @click="selectStyle('watercolor')"
+                      class="aspect-square rounded-lg bg-[#eeb163] hover:bg-[#e5a754]
+                             flex flex-col items-center justify-center p-4 text-white">
+                <div class="w-16 h-16 bg-white/20 rounded-lg mb-2 flex items-center justify-center">
+                  <img src="@/assets/watercolor.webp" alt="Watercolor Style" class="w-12 h-12 object-contain" />
+                </div>
+                <span class="text-lg font-medium text-center">Watercolor</span>
+              </button>
+              
+              <!-- Traditional -->
+              <button @click="selectStyle('traditional')"
+                      class="aspect-square rounded-lg bg-[#eeb163] hover:bg-[#e5a754]
+                             flex flex-col items-center justify-center p-4 text-white">
+                <div class="w-16 h-16 bg-white/20 rounded-lg mb-2 flex items-center justify-center">
+                  <img src="@/assets/traditional.webp" alt="Traditional Style" class="w-12 h-12 object-contain" />
+                </div>
+                <span class="text-lg font-medium text-center">Traditional</span>
+              </button>
+            </div>
+
+            <!-- Custom Style Input -->
+            <div class="w-full mt-8 text-center">
+              <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                  <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center">
+                  <span class="px-2 text-sm text-gray-500 bg-white">or describe your own style</span>
+                </div>
+              </div>
+              
+              <div class="mt-4">
+                <input type="text"
+                        v-model="customStyle"
+                        placeholder="Describe your art style..."
+                        class="w-full px-4 py-3 text-lg rounded-lg border border-gray-300 
+                               focus:outline-none focus:border-[#eeb163] text-[#030303]"
+                        @keyup.enter="selectCustomStyle" />
+                         
+                <button @click="selectCustomStyle"
+                        :disabled="!customStyle.trim()"
+                        class="w-full mt-4 py-3 rounded-lg bg-[#eeb163] hover:bg-[#e5a754]
+                               text-white text-lg font-medium disabled:opacity-50
+                               disabled:cursor-not-allowed">
+                  Continue with Custom Style
+                </button>
+              </div>
             </div>
           </div>
 
@@ -393,14 +468,17 @@
                            --background-activated: #e9ebef;
                            --background-focused: #e9ebef;
                            --background-activated-opacity: 1;
-                           --background-focused-opacity: 1;"
+                           --background-focused-opacity: 1;
+                           --padding-top: 16px;
+                           --padding-bottom: 16px;
+                           --padding-start: 16px;
+                           --padding-end: 16px;
+                           --size: 14px;"
                     :disabled="!isAudioReady || isCurrentPageLoading">
             <font-awesome-icon 
                 :icon="['fas', isSpeaking ? 'volume-xmark' : isAudioReady ? 'volume-high' : 'cloud-arrow-down']"
-                class="text-sm"
                 :style="{ 
                   color: isSpeaking ? '#ef4444' : '#030303',
-                  padding: '8px'
                 }" />
           </ion-button>
         </div>
@@ -513,6 +591,7 @@ export default {
     const showForm = ref(false);
     const showPromptModal = ref(false);
     const currentStep = ref('gender');
+    const customStyle = ref('');
     
     const API_KEY = import.meta.env.VITE_DREAMWEAVER_API_KEY;
     if (!API_KEY) {
@@ -687,11 +766,11 @@ export default {
       
       // Define art style mapping
       const artStyleMap = {
-        whimsical: "whimsical watercolor",
-        cartoon: "cartoon",
+        cartoon: "cartoon style",
+        manga: "anime manga",
         watercolor: "watercolor",
-        modern: "modern minimalist",
-        manga: "anime"
+        traditional: "traditional illustration",
+        custom: (style: string) => style // Handle custom style directly
       };
       
       // Process each page sequentially
@@ -729,7 +808,9 @@ export default {
                   }
                 }]
               },
-              art_style: artStyleMap[illustrationStyle.value] || "cartoon"
+              art_style: illustrationStyle.value in artStyleMap 
+                ? artStyleMap[illustrationStyle.value] 
+                : illustrationStyle.value
             })
           });
 
@@ -1089,7 +1170,7 @@ export default {
     };
 
     // Add step navigation mapping
-    const stepOrder = ['gender', 'name', 'setting', 'optional', 'language'];
+    const stepOrder = ['gender', 'name', 'setting', 'optional', 'style', 'language'];
 
     const goBack = () => {
       const currentIndex = stepOrder.indexOf(currentStep.value);
@@ -1100,6 +1181,18 @@ export default {
       } else {
         // Otherwise go to previous step
         currentStep.value = stepOrder[currentIndex - 1];
+      }
+    };
+
+    const selectStyle = (style: string) => {
+      illustrationStyle.value = style;
+      currentStep.value = 'language';
+    };
+
+    const selectCustomStyle = () => {
+      if (customStyle.value.trim()) {
+        illustrationStyle.value = customStyle.value.trim();
+        currentStep.value = 'language';
       }
     };
 
@@ -1141,6 +1234,8 @@ export default {
       startStoryCreation,
       selectLanguage,
       goBack,
+      selectStyle,
+      customStyle,
     };
   }
 };
