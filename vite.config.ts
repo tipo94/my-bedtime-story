@@ -10,8 +10,8 @@ import autoprefixer from 'autoprefixer'
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
-  // Set the third parameter to '' to load all env regardless of the `VITE_` prefix.
-  const env = loadEnv(mode, process.cwd(), '')
+  // Set the third parameter to 'VITE_' to load all env with the 'VITE_' prefix.
+  const env = loadEnv(mode, process.cwd(), 'VITE_')
 
   return {
     plugins: [
@@ -46,17 +46,11 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: '0.0.0.0',
-      port: 3000,
-      proxy: {
-        '/api/replicate': {
-          target: 'https://api.replicate.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/replicate/, '')
-        }
-      }
+      port: 3000
     },
     define: {
-      'process.env': env
+      'process.env': env,
+      'import.meta.env.VITE_DREAMWEAVER_API_KEY': JSON.stringify(env.VITE_DREAMWEAVER_API_KEY)
     }
   }
 })

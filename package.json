@@ -25,6 +25,7 @@
     "@fortawesome/free-regular-svg-icons": "^6.5.1",
     "@fortawesome/free-solid-svg-icons": "^6.5.1",
     "@fortawesome/vue-fontawesome": "^3.0.6",
+    "@heroicons/vue": "^2.2.0",
     "@ionic/vue": "^8.0.0",
     "@ionic/vue-router": "^8.0.0",
     "ionicons": "^7.0.0",

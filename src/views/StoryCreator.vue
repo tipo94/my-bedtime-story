@@ -318,7 +318,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useRouter } from 'vue-router';
 import { Capacitor } from '@capacitor/core';
 import { useTTSStore } from '@/stores/ttsStore';
-import { ChevronDownIcon } from '@heroicons/vue/16/solid'
+import { ChevronDownIcon } from '@heroicons/vue/24/outline'
 
 // Add ALL Font Awesome icons to library
 library.add(
@@ -347,7 +347,8 @@ export default {
     IonSelect,
     IonSelectOption,
     IonIcon,
-    FontAwesomeIcon
+    FontAwesomeIcon,
+    ChevronDownIcon
   },
   setup() {
     const router = useRouter();
@@ -362,6 +363,7 @@ export default {
     const additionalDetails = ref('Elle a un pendentif magique qui brille quand les animaux sont proches. Elle aime aider les créatures perdues à retrouver leur chemin.');
     const submitted = ref(false);
     const story = ref('');
+    const characters = ref([]);
     const isLoading = ref(false);
     const currentPage = ref(0);
     const storyPages = ref([]);
@@ -372,6 +374,11 @@ export default {
     const shouldContinueReading = ref(false);
     const showForm = ref(false);
     
+    const API_KEY = import.meta.env.VITE_DREAMWEAVER_API_KEY;
+    if (!API_KEY) {
+      console.error('Missing DREAMWEAVER API key in environment variables');
+    }
+
     const getVoiceId = (lang: string) => {
       const voices = {
         english: {
@@ -506,224 +513,69 @@ Format the description to be used as a reference for consistent illustration acr
       }
     };
 
-    // Add a new function to analyze the page content
-    const analyzePageContent = async (pageContent, pageNumber) => {
-      try {
-        const analysisPrompt = `Given this story page content, create a clear, focused description of the single most important moment to illustrate:
-${pageContent}
-
-Focus on:
-1. The exact moment/action to capture
-2. Character's pose and expression
-3. Key visual elements in the scene
-4. Lighting and atmosphere
-5. Important objects or background elements
-
-Provide the description in a single, clear paragraph focused only on the visual elements. Do not include any story elements that cannot be seen. Do not include any text formatting or labels.`;
-
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
-          },
-          body: JSON.stringify({
-            model: "gpt-4o-mini",
-            messages: [{
-              role: "user",
-              content: analysisPrompt
-            }],
-            temperature: 0.7,
-            max_tokens: 200
-          })
-        });
-
-        const data = await response.json();
-        // Clean up any formatting or labels that might be in the response
-        return data.choices[0].message.content
-          .replace(/Scene:|Description:|Illustration:|Page \d+:/gi, '')
-          .replace(/^\s*[-*]\s*/gm, '')
-          .trim();
-      } catch (error) {
-        console.error('Error analyzing page content:', error);
-        return null;
-      }
-    };
 
     // Update the generateAllImages function
     const generateAllImages = async () => {
-      // Get detailed character description first
-      const detailedCharacterDescription = await retryOperation(getDetailedCharacterDescription);
+      // Store original page number to restore it later
+      const originalPage = currentPage.value;
       
-      if (!detailedCharacterDescription) {
-        console.error('Failed to generate character description after retries');
-        return;
-      }
-
-      // Process each page sequentially
-      for (let index = 0; index < storyPages.value.length; index++) {
+      // Define art style mapping
+      const artStyleMap = {
+        whimsical: "whimsical watercolor",
+        cartoon: "cartoon",
+        watercolor: "watercolor",
+        modern: "modern minimalist",
+        manga: "anime"
+      };
+      
+      // Process each page sequentially without affecting display
+      for (let pageIndex = 0; pageIndex < storyPages.value.length; pageIndex++) {
         try {
-          // Analyze the page content
-          const pageAnalysis = await retryOperation(() => 
-            analyzePageContent(storyPages.value[index], index + 1)
-          );
+          
+          // Generate image for this page using pageIndex directly
+          const response = await fetch('https://airticle-flow.com/dreamweaver/illustration', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${API_KEY}`,
+              'Accept': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              page_number: pageIndex,
+              story: {
+                title: storyTitle.value,
+                pages: storyPages.value
+              },
+              characters: {
+                characters: characters.value
+              },
+              art_style: artStyleMap[illustrationStyle.value] || "cartoon"
+            })
+          });
 
-          if (!pageAnalysis) {
-            throw new Error('Failed to analyze page content');
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Failed to generate illustration: ${errorData.message || response.statusText}`);
           }
 
-          // Generate image with combined character and scene information
-          const generateImage = async () => {
-            try {
-              // Get style description based on selected style
-              const styleGuide = {
-                whimsical: "Whimsical and playful children's book style with soft colors and rounded shapes, similar to Oliver Jeffers or Maurice Sendak",
-                cartoon: "Bold, cartoon-style illustrations with vibrant colors and clean lines, like Dr. Seuss or Richard Scarry",
-                watercolor: "Gentle watercolor illustrations with flowing textures and soft edges, similar to Beatrix Potter or Holly Hobbie",
-                modern: "Modern, minimalist style with geometric shapes and bold color blocks, like Jon Klassen or Christian Robinson",
-                manga: "Cute manga/anime inspired style with big eyes and expressive characters, similar to Studio Ghibli's children's books"
-              }[illustrationStyle.value];
-
-              const imagePrompt = `Create a dynamic children's book illustration for this specific scene:
-
-SCENE DESCRIPTION (Primary Focus):
-${pageAnalysis}
-
-CHARACTER APPEARANCE (Reference):
-${detailedCharacterDescription}
-
-ARTISTIC STYLE (Most Important):
-${styleGuide}
-
-ARTISTIC REQUIREMENTS:
-1. Scene Composition:
-- Focus on capturing the action/moment described in the scene
-- Show the scene from the most dramatic or interesting angle
-- Create depth with foreground, middle-ground, and background elements
-- Place ${heroName.value} in a dynamic pose that matches the current action
-- Set in ${setting.value} with appropriate atmosphere and mood
-
-2. Character Integration:
-- Maintain consistent character design while showing them engaged in the scene's action
-- Express appropriate emotions for the moment
-- Ensure character is properly integrated into the environment
-
-3. Technical Details:
-- Dramatic composition using rule of thirds
-- Clear focus on the main action
-- Professional lighting that enhances the scene
-- Natural perspective and scale
-
-Important: This is page ${index + 1} of 5 - The primary focus should be on illustrating this specific action: ${pageAnalysis.split('\n')[0]}`.slice(0, 1000);
-
-              const response = await fetch('https://api.openai.com/v1/images/generations', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
-                },
-                body: JSON.stringify({
-                  prompt: imagePrompt,
-                  model: 'dall-e-3',
-                  n: 1,
-                  size: "1024x1024",
-                  quality: "standard",
-                  style: "natural"
-                })
-              });
-
-              if (!response.ok) {
-                const errorData = await response.json();
-                if (Capacitor.isNativePlatform()) {
-                  // @ts-ignore
-                  Capacitor.Console.log({
-                    message: `Image generation failed: ${JSON.stringify(errorData)}`,
-                    level: 'error'
-                  });
-                }
-                throw new Error(`Failed to generate image: ${JSON.stringify(errorData)}`);
-              }
-
-              const data = await response.json();
-              if (!data.data || !data.data[0] || !data.data[0].url) {
-                throw new Error('Unexpected API response structure');
-              }
-
-              return data.data[0].url;
-            } catch (error) {
-              if (Capacitor.isNativePlatform()) {
-                // @ts-ignore
-                Capacitor.Console.log({
-                  message: `Image generation error: ${error.message}`,
-                  level: 'error'
-                });
-              }
-              console.error('Image generation error:', error);
-              throw error;
-            }
-          };
-
-          // Try to generate the image with retries
-          const imageUrl = await retryOperation(generateImage);
-          pageImages.value[index] = imageUrl;
+          const data = await response.json();
+          pageImages.value[pageIndex] = data.image_url;
 
           // Add delay between pages
-          if (index < storyPages.value.length - 1) {
+          if (pageIndex < storyPages.value.length - 1) {
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
         } catch (error) {
-          console.error(`Failed to generate image for page ${index + 1}:`, error);
-          // Set a placeholder or error state for this image
-          pageImages.value[index] = null;
+          console.error(`Failed to generate image for page ${pageIndex + 1}:`, error);
+          pageImages.value[pageIndex] = null;
         }
       }
+      
+
     };
 
-    // Add a function to get language-specific prompts
-    const getStoryPrompt = (lang: string) => {
-      const prompts = {
-        french: {
-          title: "Créez une histoire pour enfants en français avec les spécifications suivantes:",
-          character: {
-            name: `Nom: ${heroName.value}`,
-            gender: `Genre: ${heroGender.value}`,
-            ability: `Capacité spéciale: ${specialQuality.value}`,
-            setting: `Lieu: ${setting.value}`,
-            details: `Détails: ${additionalDetails.value}`
-          },
-          theme: `Thème: ${theme.value}`,
-          format: "L'histoire doit être écrite en français simple et clair, adaptée aux enfants de 5-8 ans."
-        },
-        english: {
-          title: "Create a children's story in English with the following specifications:",
-          character: {
-            name: `Name: ${heroName.value}`,
-            gender: `Gender: ${heroGender.value}`,
-            ability: `Special ability: ${specialQuality.value}`,
-            setting: `Setting: ${setting.value}`,
-            details: `Details: ${additionalDetails.value}`
-          },
-          theme: `Theme: ${theme.value}`,
-          format: "The story should be written in simple, clear English suitable for children aged 5-8."
-        },
-        spanish: {
-          title: "Crea un cuento infantil en español con las siguientes especificaciones:",
-          character: {
-            name: `Nombre: ${heroName.value}`,
-            gender: `Género: ${heroGender.value}`,
-            ability: `Habilidad especial: ${specialQuality.value}`,
-            setting: `Escenario: ${setting.value}`,
-            details: `Detalles: ${additionalDetails.value}`
-          },
-          theme: `Tema: ${theme.value}`,
-          format: "La historia debe estar escrita en español simple y claro, adecuado para niños de 5-8 años."
-        }
-      };
-
-      return prompts[lang] || prompts.english;
-    };
-
-    // Update the handleSubmit function to use language-specific prompts
+    // Update the handleSubmit function
     const handleSubmit = async () => {
       try {
         console.log('Starting story creation process...');
@@ -736,120 +588,48 @@ Important: This is page ${index + 1} of 5 - The primary focus should be on illus
           promptTitle: langPrompt.title
         });
 
-        const prompt = `${langPrompt.title}
-
-${langPrompt.character.name}
-${langPrompt.character.gender}
-${langPrompt.character.ability}
-${langPrompt.character.setting}
-${langPrompt.character.details}
-
-${langPrompt.theme}
-${langPrompt.format}
-
-Create a children's story with exactly 5 pages. Return the response in this exact JSON format:
-
-{
-  "title": "Story Title",
-  "pages": [
-    {
-      "pageNumber": 1,
-      "content": "Content of page 1 without any formatting or section markers"
-    },
-    {
-      "pageNumber": 2,
-      "content": "Content of page 2 without any formatting or section markers"
-    },
-    {
-      "pageNumber": 3,
-      "content": "Content of page 3 without any formatting or section markers"
-    },
-    {
-      "pageNumber": 4,
-      "content": "Content of page 4 without any formatting or section markers"
-    },
-    {
-      "pageNumber": 5,
-      "content": "Content of page 5 without any formatting or section markers"
-    }
-  ]
-}
-
-Requirements:
-- Write the entire story in ${language.value === 'french' ? 'French' : language.value === 'spanish' ? 'Spanish' : 'English'}
-- Each page's content should be a single paragraph or two of pure story content
-- Do not include any section titles, page numbers, or formatting markers
-- Do not include "Introduction", "Chapter", or any other structural text
-- Content should be pure narrative text that can be displayed directly
-- Each page should contain 150-200 words of story content
-- Maintain consistent narrative flow between pages
-- Use age-appropriate language and vocabulary for 5-8 year olds
-- Include dialogue and descriptive scenes
-- Keep the story engaging and fun`;
-
-        console.log('Making OpenAI API request with prompt length:', prompt.length);
-
-        const makeStoryRequest = async () => {
-          const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
+        // Use the new Dreamweaver API
+        const response = await fetch('https://airticle-flow.com/dreamweaver/summary', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_KEY}`,
+            'Accept': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            title: langPrompt.title,
+            character: {
+              name: heroName.value,
+              gender: heroGender.value,
+              ability: specialQuality.value,
+              setting: setting.value,
+              details: additionalDetails.value
             },
-            body: JSON.stringify({
-              model: "gpt-4o-mini",
-              messages: [{
-                role: "user",
-                content: prompt
-              }],
-              temperature: 0.8,
-              max_tokens: 1500,
-              response_format: { type: "json_object" }
-            })
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.error('API error response:', errorData);
-            throw errorData;
-          }
-
-          return response.json();
-        };
-
-        const data = await retryOperation(makeStoryRequest);
-        console.log('OpenAI API response received:', {
-          hasChoices: !!data.choices,
-          choicesLength: data.choices?.length,
-          firstChoiceLength: data.choices?.[0]?.message?.content?.length
+            theme: theme.value,
+            format: langPrompt.format
+          })
         });
 
-        let storyData;
-        try {
-          storyData = JSON.parse(data.choices[0].message.content);
-          console.log('Successfully parsed story data:', {
-            hasTitle: !!storyData.title,
-            pagesCount: storyData.pages?.length,
-            firstPageLength: storyData.pages?.[0]?.content?.length
-          });
-        } catch (parseError) {
-          console.error('Failed to parse story data:', {
-            error: parseError,
-            rawContent: data.choices[0].message.content
-          });
-          throw new Error('Failed to parse story response');
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Story generation failed: ${errorData.message || response.statusText}`);
         }
+
+        const storyData = await response.json();
         
-        // Set the story title and pages directly from the JSON structure
+        // Set the story title and pages from the API response
         storyTitle.value = storyData.title;
-        storyPages.value = storyData.pages.map(page => page.content);
+        storyPages.value = storyData.pages;
+        characters.value = storyData.characters;
         currentPage.value = 0;
         pageImages.value = {};
         
         console.log('Story setup complete:', {
           title: storyTitle.value,
           pageCount: storyPages.value.length,
-          currentPage: currentPage.value
+          currentPage: currentPage.value,
+          characters: characters.value
         });
         
         // Remove main loading spinner as soon as we have the story
@@ -862,29 +642,9 @@ Requirements:
         });
 
       } catch (error) {
-        console.error('Story creation error:', {
-          error,
-          message: error.message,
-          stack: error.stack,
-          isLoading: isLoading.value,
-          submitted: submitted.value
-        });
-        story.value = `Error: ${error.message || 'Unknown error occurred'}`;
+        console.error('Story creation error:', error);
         isLoading.value = false;
-
-        // Log additional context if available
-        if (error.response) {
-          console.error('Error response:', {
-            status: error.response.status,
-            statusText: error.response.statusText,
-            data: await error.response.text().catch(() => 'Failed to get response text')
-          });
-        }
-
-        // Check API key
-        if (!import.meta.env.VITE_OPENAI_API_KEY) {
-          console.error('OpenAI API key is missing');
-        }
+        alert(`Failed to create story: ${error.message}`);
       }
     };
 
@@ -1008,62 +768,98 @@ Requirements:
 
     const isSpeaking = computed(() => ttsStore.isSpeaking);
 
-    // Add the shuffleStory function
+    // Update the shuffleStory function
     const shuffleStory = async () => {
       try {
         console.log('Starting random story settings generation...');
         isLoading.value = true;
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        // Call the random_story endpoint
+        const response = await fetch('https://airticle-flow.com/api/dreamweaver/random_story', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
+            'Authorization': `Bearer ${API_KEY}`,
+            'Accept': 'application/json'
           },
-          body: JSON.stringify({
-            model: "gpt-4o-mini",
-            messages: [{
-              role: "user",
-              content: `Generate random, creative settings for a children's story in French. Return as JSON:
-              {
-                "heroName": "string (French name)",
-                "heroGender": "boy|girl",
-                "setting": "string (in French)",
-                "specialQuality": "string (in French)",
-                "theme": "friendship|courage|kindness|perseverance|creativity",
-                "additionalDetails": "string (in French)"
-              }
-              Make it whimsical and fun for children aged 5-8. All text fields except heroGender should be in French.`
-            }],
-            temperature: 0.9,
-            max_tokens: 500,
-            response_format: { type: "json_object" }
-          })
+          credentials: 'include'
         });
 
-        if (!response.ok) {
-          throw new Error(`Failed to get random settings: ${response.status}`);
+       
+
+        // The response will already contain the generated story since the backend
+        // calls summary() with the random parameters
+        const storyData = await response.json();
+        
+        // Update the story data
+        if (storyData.character) {
+          heroName.value = storyData.character.name || heroName.value;
+          heroGender.value = storyData.character.gender || heroGender.value;
+          setting.value = storyData.character.setting || setting.value;
+          specialQuality.value = storyData.character.ability || specialQuality.value;
+          additionalDetails.value = storyData.character.details || additionalDetails.value;
         }
+        if (storyData.theme) {
+          theme.value = storyData.theme;
+        }
+        
+        
 
-        const data = await response.json();
-        const settings = JSON.parse(data.choices[0].message.content);
+        // Remove main loading spinner
+        isLoading.value = false;
+        
+        // Start generating images in the background
+        handleSubmit()
 
-        // Update the form values
-        heroName.value = settings.heroName;
-        heroGender.value = settings.heroGender;
-        setting.value = settings.setting;
-        specialQuality.value = settings.specialQuality;
-        theme.value = settings.theme;
-        additionalDetails.value = settings.additionalDetails;
-        language.value = 'french'; // Always set to French
-
-        // Automatically submit with the random settings
-        await handleSubmit();
       } catch (error) {
-        console.error('Random settings generation error:', error);
-        alert('Failed to generate random story settings. Please try again.');
+        console.error('Random story generation error:', error);
+        alert('Failed to generate random story. Please try again.');
         isLoading.value = false;
       }
+    };
+
+    // Add a function to get language-specific prompts
+    const getStoryPrompt = (lang: string) => {
+      const prompts = {
+        french: {
+          title: "Créez une histoire pour enfants en français avec les spécifications suivantes:",
+          character: {
+            name: `Nom: ${heroName.value}`,
+            gender: `Genre: ${heroGender.value}`,
+            ability: `Capacité spéciale: ${specialQuality.value}`,
+            setting: `Lieu: ${setting.value}`,
+            details: `Détails: ${additionalDetails.value}`
+          },
+          theme: `Thème: ${theme.value}`,
+          format: "L'histoire doit être écrite en français simple et clair, adaptée aux enfants de 5-8 ans."
+        },
+        english: {
+          title: "Create a children's story in English with the following specifications:",
+          character: {
+            name: `Name: ${heroName.value}`,
+            gender: `Gender: ${heroGender.value}`,
+            ability: `Special ability: ${specialQuality.value}`,
+            setting: `Setting: ${setting.value}`,
+            details: `Details: ${additionalDetails.value}`
+          },
+          theme: `Theme: ${theme.value}`,
+          format: "The story should be written in simple, clear English suitable for children aged 5-8."
+        },
+        spanish: {
+          title: "Crea un cuento infantil en español con las siguientes especificaciones:",
+          character: {
+            name: `Nombre: ${heroName.value}`,
+            gender: `Género: ${heroGender.value}`,
+            ability: `Habilidad especial: ${specialQuality.value}`,
+            setting: `Escenario: ${setting.value}`,
+            details: `Detalles: ${additionalDetails.value}`
+          },
+          theme: `Tema: ${theme.value}`,
+          format: "La historia debe estar escrita en español simple y claro, adecuado para niños de 5-8 años."
+        }
+      };
+
+      return prompts[lang] || prompts.english;
     };
 
     return { 

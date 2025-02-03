@@ -6,81 +6,87 @@ export const useTTSStore = defineStore('tts', () => {
   const audioCache = ref<{ [key: number]: string }>({});
   const isSpeaking = ref(false);
   const currentAudio = ref<HTMLAudioElement | null>(null);
+  
+  // Get API key once at store initialization
+  const API_KEY = import.meta.env.VITE_DREAMWEAVER_API_KEY;
+  if (!API_KEY) {
+    console.error('Missing DREAMWEAVER API key in environment variables');
+  }
+
+  // Create headers object once
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${API_KEY}`,
+    'Accept': 'application/json'
+  };
 
   async function generateSpeech(text: string, language: string = 'en'): Promise<string> {
     try {
-      console.log('Starting speech generation with:', { text: text.substring(0, 50), language });
+      console.log('Starting speech generation with:', { 
+        text: text.substring(0, 50), 
+        language,
+        hasApiKey: !!API_KEY
+      });
       
-      const response = await fetch("/api/replicate/v1/predictions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${import.meta.env.VITE_REPLICATE_API_KEY}`
-        },
+      const response = await fetch('https://airticle-flow.com/api/speech/generate', {
+        method: 'POST',
+        headers,
+        credentials: 'include',
         body: JSON.stringify({
-          version: "684bc3855b37866c0c65add2ff39c78f3dea3f4ff103a436465326e0f438d55e",
-          input: {
-            text: text,
-            language: language === 'french' ? 'fr' : 
-                     language === 'spanish' ? 'es' : 'en',
-            speaker: "https://replicate.delivery/pbxt/Jt79w0xsT64R1JsiJ0LQRL8UcWspg5J4RFrU6YwEKpOT1ukS/male.wav",
-            cleanup_voice: false
-          }
+          text: text,
+          language: language
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('Replicate API error:', errorData);
-        throw new Error(`Replicate API error: ${JSON.stringify(errorData)}`);
+        throw new Error(`Speech generation failed: ${errorData.message || response.statusText}`);
       }
 
-      const prediction = await response.json();
-      console.log('Prediction created:', prediction);
-      const predictionId = prediction.id;
+      const data = await response.json();
+      console.log('Generate response:', data);
+
+      if (!data.id) {
+        throw new Error('No prediction ID received from server');
+      }
 
       // Poll for completion
       let attempts = 0;
-      const maxAttempts = 30; // 30 seconds timeout
-      
+      const maxAttempts = 30;
+
       while (attempts < maxAttempts) {
         attempts++;
-        console.log(`Checking prediction status (attempt ${attempts}/${maxAttempts})`);
-        
-        const statusResponse = await fetch(
-          `/api/replicate/v1/predictions/${predictionId}`,
-          {
-            headers: {
-              "Authorization": `Bearer ${import.meta.env.VITE_REPLICATE_API_KEY}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        console.log(`Checking speech status (attempt ${attempts}/${maxAttempts})`);
+
+        const statusResponse = await fetch(`https://airticle-flow.com/api/speech/status/${data.id}`, {
+          method: 'GET',
+          headers,
+          credentials: 'include'
+        });
 
         if (!statusResponse.ok) {
           const errorData = await statusResponse.json();
-          console.error('Status check error:', errorData);
-          throw new Error(`Status check failed: ${JSON.stringify(errorData)}`);
+          console.error('Status check error:', {
+            status: statusResponse.status,
+            errorData
+          });
+          throw new Error(`Status check failed: ${errorData.details?.detail || errorData.error || 'Unknown error'}`);
         }
 
-        const result = await statusResponse.json();
-        console.log('Prediction status:', result.status);
+        const statusData = await statusResponse.json();
+        console.log('Status response:', statusData);
 
-        if (result.status === "succeeded") {
-          console.log('Speech generation successful:', result.output);
-          return result.output;
-        } else if (result.status === "failed") {
-          console.error('Prediction failed:', result);
-          throw new Error(`Speech generation failed: ${result.error || 'Unknown error'}`);
-        } else if (result.status === "canceled") {
-          throw new Error('Speech generation was canceled');
+        if (statusData.status === 'succeeded') {
+          return statusData.output;
+        } else if (statusData.status === 'failed') {
+          throw new Error(statusData.error || 'Speech generation failed');
         }
 
-        // Wait before polling again
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
       throw new Error('Speech generation timed out');
+
     } catch (error) {
       console.error('Speech generation error:', error);
       throw error;
@@ -95,8 +101,67 @@ export const useTTSStore = defineStore('tts', () => {
     isPreloading.value[pageNumber] = true;
 
     try {
-      const audioUrl = await generateSpeech(text, language);
-      audioCache.value[pageNumber] = audioUrl;
+      // First, generate the audio
+      const generateResponse = await fetch('https://airticle-flow.com/api/speech/generate', {
+        method: 'POST',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify({
+          text: text,
+          language: language
+        })
+      });
+
+      if (!generateResponse.ok) {
+        const errorData = await generateResponse.json();
+        throw new Error(`Failed to generate audio: ${errorData.message || generateResponse.statusText}`);
+      }
+
+      const generateData = await generateResponse.json();
+      console.log('Generate response:', generateData);
+
+      if (!generateData.id) {
+        throw new Error('No prediction ID received from server');
+      }
+
+      // Poll for audio completion
+      let attempts = 0;
+      const maxAttempts = 30;
+
+      while (attempts < maxAttempts) {
+        attempts++;
+        console.log(`Checking audio status for page ${pageNumber} (attempt ${attempts}/${maxAttempts})`);
+
+        const statusResponse = await fetch(`https://airticle-flow.com/api/speech/status/${generateData.id}`, {
+          method: 'GET',
+          headers,
+          credentials: 'include'
+        });
+
+        if (!statusResponse.ok) {
+          const errorData = await statusResponse.json();
+          console.error('Status check error:', {
+            status: statusResponse.status,
+            errorData
+          });
+          throw new Error(`Status check failed: ${errorData.details?.detail || errorData.error || 'Unknown error'}`);
+        }
+
+        const statusData = await statusResponse.json();
+        console.log('Status response:', statusData);
+
+        if (statusData.status === 'succeeded') {
+          audioCache.value[pageNumber] = statusData.output;
+          return;
+        } else if (statusData.status === 'failed') {
+          throw new Error(statusData.error || 'Audio generation failed');
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      throw new Error('Audio generation timed out');
+
     } catch (error) {
       console.error(`Failed to preload audio for page ${pageNumber}:`, error);
     } finally {
