@@ -178,7 +178,7 @@ export const useTTSStore = defineStore('tts', () => {
     isSpeaking.value = false;
   }
 
-  async function playAudio(pageNumber: number, text: string, language: string) {
+  async function playAudio(pageNumber: number, text: string, language: string, onComplete?: () => void) {
     if (!audioCache.value[pageNumber]) {
       await preloadAudio(pageNumber, text, language);
     }
@@ -200,6 +200,9 @@ export const useTTSStore = defineStore('tts', () => {
     audio.addEventListener('ended', () => {
       isSpeaking.value = false;
       currentAudio.value = null;
+      if (onComplete) {
+        onComplete();
+      }
     });
 
     try {

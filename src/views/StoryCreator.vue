@@ -2,209 +2,333 @@
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Short+Stack&display=swap" rel="stylesheet">
   <ion-page>
     <ion-content class="ion-padding bg-cream dark:bg-gray-900">
-      <div class="tailwind container w-full flex flex-col sace-y-12 pb-4">
-        <!-- Title with decorative border -->
-        <h1 class="text-4xl font-stack text-primary text-center font-bold mb-12 mt-8
-                   dark:text-teal-400 drop-shadow-lg relative">
-          <span class="relative inline-block px-8 py-2 border-4 border-primary dark:border-teal-400 
-                       rounded-lg bg-white dark:bg-gray-800 shadow-lg">
-            Dreamweaver
-          </span>
+      <div class="container mx-auto max-w-md px-4 py-8">
+        <!-- Title -->
+        <h1 class="text-3xl font-stack text-primary dark:text-teal-400 mb-12 flex items-center gap-2">
+          <span class="text-[#eeb163]"><font-awesome-icon :icon="['fas', 'book']"  /></span>
+          <span class="text-black font-semibold">My Bedtime Story</span>
         </h1>
-        
-        <!-- Story options with Font Awesome icons -->
-        <div class="flex flex-col  gap-6 mx-auto mb-12 px-5" v-if="!submitted">
-          <ion-button expand="block" @click="shuffleStory" :disabled="isLoading"
-                    class="flex-1 h-14 rounded-full shadow-lg bg-teal-500 hover:bg-teal-600
-                           transition-all duration-300 font-stack text-lg">
-            <font-awesome-icon :icon="['fas', 'shuffle']" class="mr-2" />
-            Random Story
+
+        <!-- Main buttons - Only show when form is not visible AND story is not submitted -->
+        <div v-if="!showForm && !submitted" class="flex flex-col gap-4">
+          <!-- Random Story Button -->
+          <ion-button expand="block" 
+                     @click="shuffleStory" 
+                     :disabled="isLoading"
+                     class="h-14 font-stack text-lg"
+                     style="--background: #eeb163; --border-radius: 6px;">
+            Generate Random Story
           </ion-button>
-          
-          <ion-button expand="block" @click="showForm = !showForm" :disabled="isLoading"
-                    class="flex-1 h-14 rounded-full shadow-lg bg-coral hover:bg-coral-dark
-                           transition-all duration-300 font-stack text-lg">
-            <font-awesome-icon :icon="['fas', 'cog']" class="mr-2" />
-            {{ showForm ? 'Hide Settings' : 'Custom Story' }}
+
+          <!-- Settings Button -->
+          <ion-button expand="block" 
+                     @click="showForm = !showForm" 
+                     :disabled="isLoading"
+                     class="h-14 font-stack text-lg"
+                     style="--background: #f3f3f3; --border-radius: 6px; --color: #000000;">
+            Generate from Settings
+          </ion-button>
+
+          <!-- Prompt Button -->
+          <ion-button expand="block" 
+                     @click="showPromptModal = true" 
+                     :disabled="isLoading"
+                     class="h-14 font-stack text-lg"
+                     style="--background: #eeb163; --border-radius: 6px;">
+            Generate from Prompt
           </ion-button>
         </div>
 
         <!-- Form with modern styling -->
-        <form v-if="showForm && !submitted" @submit.prevent="handleSubmit" 
-              class="mx-auto bg-white/10 rounded-lg shadow-xl p-8 space-y-12 flex flex-col ">
-          <div class="border-b border-white/10 pb-12 flex flex-col">
-            <h2 class="text-base/7 font-semibold text-white text-center">Story Settings</h2>
-            <p class="mt-1 text-sm/6 text-gray-400 text-center">Create a unique story with these magical ingredients.</p>
+        <div v-if="showForm" class="mx-auto max-w-md">
+          <!-- Back Button -->
+          <button @click="goBack" 
+                  class="mb-8 flex items-center gap-1 text-[#030303] hover:text-gray-600 transition-colors duration-200">
+            <ion-icon :icon="chevronBackOutline" 
+                      size="small"
+                      style="--ionicon-stroke-width: 48px;"
+                      aria-hidden="true" />
+            <span class="text-sm">Back</span>
+          </button>
+          
+          <!-- Character Selection Screen -->
+          <div v-if="currentStep === 'gender'" class="flex flex-col items-center px-4">
+            <h2 class="text-2xl font-medium text-[#030303] mb-2">Choose Your Character</h2>
+            <p class="text-[#030303] text-center mb-8">Select a character to begin your magical story adventure.</p>
+            
+            <div class="grid grid-cols-2 gap-4 w-full">
+              <!-- Boy Option -->
+              <button @click="selectGender('boy')"
+                      class="aspect-square rounded-lg bg-[#eeb163] hover:bg-[#e5a754] 
+                             flex flex-col items-center justify-center p-4 text-white">
+                <div class="w-16 h-16 bg-white/20 rounded-lg mb-2 flex items-center justify-center">
+                  <img src="@/assets/boy.webp" alt="Boy Character" class="w-12 h-12 object-contain" />
+                </div>
+                <span class="text-lg font-medium text-center">Boy</span>
+              </button>
+              
+              <!-- Girl Option -->
+              <button @click="selectGender('girl')"
+                      class="aspect-square rounded-lg bg-[#eeb163] hover:bg-[#e5a754]
+                             flex flex-col items-center justify-center p-4 text-white">
+                <div class="w-16 h-16 bg-white/20 rounded-lg mb-2 flex items-center justify-center">
+                  <img src="@/assets/girl.webp" alt="Girl Character" class="w-12 h-12 object-contain" />
+                </div>
+                <span class="text-lg font-medium text-center">Girl</span>
+              </button>
+            </div>
+          </div>
 
-            <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-              <!-- Hero Name -->
-              <div class="flex flex-col max-w-full">
-                <label for="hero-name" class="block text-sm/6 font-medium text-white">Hero Name</label>
-                <div class="mt-2 flex">
-                  <input type="text" 
-                         v-model="heroName"
-                         id="hero-name"
-                         required
-                         class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-white outline outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500" />
+          <!-- Name Selection Screen -->
+          <div v-if="currentStep === 'name'" class="flex flex-col items-center px-4">
+            <h2 class="text-2xl font-medium text-[#030303] mb-2">Name Your Character</h2>
+            <p class="text-[#030303] text-center mb-8">What's your character's name?</p>
+            
+            <div class="w-full flex flex-col">
+              <input type="text"
+                     v-model="heroName"
+                     placeholder="Enter name"
+                     class="max-w-full flex px-4 py-3 text-lg rounded-lg border-2 border-gray-300
+                               focus:outline-none focus:border-[#eeb163] text-[#030303]
+                               shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)]"
+                     @keyup.enter="selectName" />
+                    
+              <button @click="selectName"
+                      :disabled="!heroName.trim()"
+                      class="max-w-full flex mt-4 py-3 rounded-lg bg-[#eeb163] hover:bg-[#e5a754]
+                             text-white text-lg font-medium disabled:opacity-50
+                             px-4
+                             disabled:cursor-not-allowed">
+                Continue
+              </button>
+            </div>
+          </div>
+
+          <!-- Setting Selection Screen -->
+          <div v-if="currentStep === 'setting'" class="flex flex-col items-center px-4">
+            <h2 class="text-2xl font-medium text-[#030303] mb-2">Choose Your Setting</h2>
+            <p class="text-[#030303] text-center mb-8">Where will your adventure take place?</p>
+            
+            <div class="grid grid-cols-2 gap-4 w-full">
+              <!-- Magical Forest -->
+              <button @click="selectSetting('magical_forest')"
+                      class="aspect-square rounded-lg bg-[#eeb163] hover:bg-[#e5a754] 
+                             flex flex-col items-center justify-center p-4 text-white">
+                <div class="w-16 h-16 bg-white/20 rounded-lg mb-2 flex items-center justify-center">
+                  <img src="@/assets/forest.webp" alt="Magical Forest" class="w-12 h-12 object-contain" />
+                </div>
+                <span class="text-lg font-medium text-center">Magical Forest</span>
+              </button>
+              
+              <!-- Space Station -->
+              <button @click="selectSetting('space_station')"
+                      class="aspect-square rounded-lg bg-[#eeb163] hover:bg-[#e5a754]
+                             flex flex-col items-center justify-center p-4 text-white">
+                <div class="w-16 h-16 bg-white/20 rounded-lg mb-2 flex items-center justify-center">
+                  <img src="@/assets/space.webp" alt="Space Station" class="w-12 h-12 object-contain" />
+                </div>
+                <span class="text-lg font-medium text-center">Space Station</span>
+              </button>
+              
+              <!-- Underwater City -->
+              <button @click="selectSetting('underwater_city')"
+                      class="aspect-square rounded-lg bg-[#eeb163] hover:bg-[#e5a754]
+                             flex flex-col items-center justify-center p-4 text-white">
+                <div class="w-16 h-16 bg-white/20 rounded-lg mb-2 flex items-center justify-center">
+                  <img src="@/assets/underwater.webp" alt="Underwater City" class="w-12 h-12 object-contain" />
+                </div>
+                <span class="text-lg font-medium text-center">Underwater City</span>
+              </button>
+              
+              <!-- Castle -->
+              <button @click="selectSetting('castle')"
+                      class="aspect-square rounded-lg bg-[#eeb163] hover:bg-[#e5a754]
+                             flex flex-col items-center justify-center p-4 text-white">
+                <div class="w-16 h-16 bg-white/20 rounded-lg mb-2 flex items-center justify-center">
+                  <img src="@/assets/castle.webp" alt="Castle" class="w-12 h-12 object-contain" />
+                </div>
+                <span class="text-lg font-medium text-center">Castle</span>
+              </button>
+            </div>
+
+            <!-- Custom Setting Input -->
+            <div class="w-full mt-8 text-center">
+              <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                  <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center">
+                  <span class="px-2 text-sm text-gray-500 bg-white">or create your own</span>
                 </div>
               </div>
-
-              <!-- Hero Gender -->
-              <div class="flex flex-col max-w-full">
-                <label for="hero-gender" class="block text-sm/6 font-medium text-white">Hero Gender</label>
-                <div class="mt-2 flex">
-                  <select v-model="heroGender"
-                          id="hero-gender"
-                          required
-                          class="block w-full appearance-none rounded-md bg-white/5 py-1.5 pl-3 pr-8 text-white outline outline-1 -outline-offset-1 outline-white/10 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500">
-                    <option value="boy">Boy</option>
-                    <option value="girl">Girl</option>
-                    <option value="neutral">Gender Neutral</option>
-                  </select>
-                  <ChevronDownIcon class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 size-5 text-gray-400" aria-hidden="true" />
-                </div>
-              </div>
-
-              <!-- Setting -->
-              <div class="flex flex-col max-w-full">
-                <label for="setting" class="block text-sm/6 font-medium text-white">Story Setting</label>
-                <div class="mt-2 flex">
-                  <input type="text"
-                         v-model="setting"
-                         id="setting"
-                         required
-                         placeholder="e.g., magical forest, space station, underwater city"
-                         class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-white outline outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
-                </div>
-              </div>
-
-              <!-- Special Quality -->
-              <div class="flex flex-col max-w-full">
-                <label for="special-quality" class="block text-sm/6 font-medium text-white">Hero's Special Quality</label>
-                <div class="mt-2 flex">
-                  <input type="text"
-                         v-model="specialQuality"
-                         id="special-quality"
-                         required
-                         placeholder="e.g., can talk to animals, very brave, super smart"
-                         class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-white outline outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
-                </div>
-              </div>
-
-              <!-- Theme -->
-              <div class="flex flex-col max-w-full">
-                <label for="theme" class="block text-sm/6 font-medium text-white">Story Theme</label>
-                <div class="mt-2 flex">
-                  <select v-model="theme"
-                          id="theme"
-                          required
-                          class="block w-full appearance-none rounded-md bg-white/5 py-1.5 pl-3 pr-8 text-white outline outline-1 -outline-offset-1 outline-white/10 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500">
-                    <option value="friendship">Friendship</option>
-                    <option value="courage">Courage</option>
-                    <option value="kindness">Kindness</option>
-                    <option value="perseverance">Never Give Up</option>
-                    <option value="creativity">Creative Problem Solving</option>
-                  </select>
-                  <ChevronDownIcon class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 size-5 text-gray-400" aria-hidden="true" />
-                </div>
-              </div>
-
-              <!-- Language -->
-              <div class="flex flex-col max-w-full">
-                <label for="language" class="block text-sm/6 font-medium text-white">Language / Langue</label>
-                <div class="mt-2 flex">
-                  <select v-model="language"
-                          id="language"
-                          required
-                          class="block w-full appearance-none rounded-md bg-white/5 py-1.5 pl-3 pr-8 text-white outline outline-1 -outline-offset-1 outline-white/10 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500">
-                    <option value="french">Français</option>
-                    <option value="english">English</option>
-                    <option value="spanish">Español</option>
-                  </select>
-                  <ChevronDownIcon class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 size-5 text-gray-400" aria-hidden="true" />
-                </div>
-              </div>
-
-              <!-- Additional Details -->
-              <div class="flex flex-col max-w-full">
-                <label for="additional-details" class="block text-sm/6 font-medium text-white">Additional Details</label>
-                <div class="mt-2 flex h-56">
-                  <textarea v-model="additionalDetails"
-                            id="additional-details"
-                            rows="3"
-                            placeholder="Any other details about your hero or the story"
-                            class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-white outline outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
-                </div>
-              </div>
-
-              <!-- Illustration Style -->
-              <div class="flex flex-col max-w-full">
-                <label for="illustration-style" class="block text-sm/6 font-medium text-white">Illustration Style</label>
-                <div class="mt-2 flex">
-                  <select v-model="illustrationStyle"
-                          id="illustration-style"
-                          required
-                          class="block w-full appearance-none rounded-md bg-white/5 py-1.5 pl-3 pr-8 text-white outline outline-1 -outline-offset-1 outline-white/10 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500">
-                    <option value="whimsical">Whimsical</option>
-                    <option value="cartoon">Cartoon</option>
-                    <option value="watercolor">Watercolor</option>
-                    <option value="modern">Modern</option>
-                    <option value="manga">Manga</option>
-                  </select>
-                  <ChevronDownIcon class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 size-5 text-gray-400" aria-hidden="true" />
-                </div>
+              
+              <div class="mt-4">
+                <input type="text"
+                        v-model="customSetting"
+                        placeholder="Describe your setting..."
+                        class="w-full px-4 py-3 text-lg rounded-lg border border-gray-300 
+                               focus:outline-none focus:border-[#eeb163] text-[#030303]"
+                        @keyup.enter="selectCustomSetting" />
+                         
+                <button @click="selectCustomSetting"
+                        :disabled="!customSetting.trim()"
+                        class="w-full mt-4 py-3 rounded-lg bg-[#eeb163] hover:bg-[#e5a754]
+                               text-white text-lg font-medium disabled:opacity-50
+                               disabled:cursor-not-allowed">
+                  Continue with Custom Setting
+                </button>
               </div>
             </div>
           </div>
 
-          <!-- Form Actions -->
-          <div class="mt-6 flex items-center justify-end gap-x-6">
-            <button type="button" 
-                    @click="showForm = false"
-                    class="text-sm/6 font-semibold text-white hover:text-gray-300">
-              Cancel
-            </button>
-            <button type="submit"
-                    :disabled="isLoading"
-                    class="rounded-md bg-indigo-500 px-6 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
-              {{ isLoading ? 'Creating Story...' : 'Create Story' }}
-            </button>
+          <!-- Optional Fields Screen -->
+          <div v-if="currentStep === 'optional'" class="flex flex-col items-center px-4">
+            <h2 class="text-2xl font-medium text-[#030303] mb-2">Optional Settings</h2>
+            <p class="text-[#030303] text-center mb-8">Customize your story further (optional)</p>
+            
+            <!-- Story Theme Selection -->
+            <div class="w-full mb-8">
+              <h3 class="text-lg font-medium text-[#030303] mb-4">Choose a Theme</h3>
+              <div class="grid grid-cols-2 gap-4">
+                <button @click="selectTheme('friendship')"
+                        :class="[
+                          'py-3 px-4 rounded-lg text-white text-center',
+                          theme === 'friendship' ? 'bg-[#eeb163]' : 'bg-gray-200 text-gray-700'
+                        ]">
+                  Friendship
+                </button>
+                <button @click="selectTheme('courage')"
+                        :class="[
+                          'py-3 px-4 rounded-lg text-white text-center',
+                          theme === 'courage' ? 'bg-[#eeb163]' : 'bg-gray-200 text-gray-700'
+                        ]">
+                  Courage
+                </button>
+                <button @click="selectTheme('kindness')"
+                        :class="[
+                          'py-3 px-4 rounded-lg text-white text-center',
+                          theme === 'kindness' ? 'bg-[#eeb163]' : 'bg-gray-200 text-gray-700'
+                        ]">
+                  Kindness
+                </button>
+                <button @click="selectTheme('perseverance')"
+                        :class="[
+                          'py-3 px-4 rounded-lg text-white text-center',
+                          theme === 'perseverance' ? 'bg-[#eeb163]' : 'bg-gray-200 text-gray-700'
+                        ]">
+                  Never Give Up
+                </button>
+              </div>
+            </div>
+            
+            <!-- Additional Details -->
+            <div class="w-full mb-8 flex flex-col">
+              <h3 class="text-lg font-medium text-[#030303] mb-4">Additional Details</h3>
+              <p class="text-sm text-gray-600 mb-2">Type any extra details about your character or story</p>
+              <textarea v-model="additionalDetails"
+                        placeholder="Add any other details about your character or story..."
+                        rows="4"
+                        class="max-w-full flex px-4 py-3 text-lg rounded-lg border-2 border-gray-300 
+                               focus:outline-none focus:border-[#eeb163] text-[#030303]
+                               resize-none"
+                        style="box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);">
+              </textarea>
+            </div>
+            
+            <!-- Continue Button in Optional Fields Screen -->
+            <div class="w-full px-4 flex">
+              <button @click="startStoryCreation"
+                      class="w-full p-3 rounded-lg bg-[#eeb163] hover:bg-[#e5a754]
+                             text-white text-lg font-medium">
+                Next
+              </button>
+            </div>
           </div>
-        </form>
+
+          <!-- Language Selection Screen -->
+          <div v-if="currentStep === 'language'" class="flex flex-col items-center px-4">
+            <h2 class="text-2xl font-medium text-[#030303] mb-2">Choose Your Language</h2>
+            <p class="text-[#030303] text-center mb-8">Your story will be created in English by default</p>
+            
+            <div class="flex gap-4 justify-center w-full mb-8">
+              <button @click="selectLanguage('french')"
+                      :class="[
+                        'py-2 px-4 rounded-lg text-lg font-medium',
+                        language === 'french' 
+                          ? 'bg-[#eeb163] text-white' 
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ]">
+                French
+              </button>
+              
+              <button @click="selectLanguage('english')"
+                      :class="[
+                        'py-2 px-4 rounded-lg text-lg font-medium',
+                        language === 'english' 
+                          ? 'bg-[#eeb163] text-white' 
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ]">
+                English
+              </button>
+              
+              <button @click="selectLanguage('spanish')"
+                      :class="[
+                        'py-2 px-4 rounded-lg text-lg font-medium',
+                        language === 'spanish' 
+                          ? 'bg-[#eeb163] text-white' 
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ]">
+                Spanish
+              </button>
+            </div>
+            
+            <!-- Create Story Button -->
+            <div class="w-full px-4">
+              <button @click="handleSubmit"
+                      class="w-full p-3 rounded-lg bg-[#eeb163] hover:bg-[#e5a754]
+                             text-white text-lg font-medium">
+                Create My Story
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- Story display with book-like styling -->
         <div v-if="submitted && storyPages.length > 0 && !isLoading" 
-             class="story-conmax-w-full flex flex-col bg-white dark:bg-gray-800 px-8
+             class="story-con max-w-full flex flex-col bg-white dark:bg-gray-800 px-8
                     rounded-3xl shadow-2xl overflow-hidden transition-all duration-300
                     border-4 border-primary dark:border-teal-400 pb-8">
           <!-- Story navigation with Font Awesome icons -->
-          <div class="flex items-center justify-center gap-8 p-6 bg-cream dark:bg-gray-700
-                      border-t-4 border-primary dark:border-teal-400 mt-8">
-            <ion-button @click="previousPage" :disabled="currentPage === 0"
-                      class="w-14 h-14 rounded-full !p-0 bg-primary dark:bg-teal-500
-                             hover:bg-primary-dark dark:hover:bg-teal-600 shadow-lg
-                             transition-all duration-300">
-              <font-awesome-icon :icon="['fas', 'arrow-left']" class="text-2xl" />
-            </ion-button>
+          <div class="flex items-center justify-between px-6 py-4">
+            <!-- Previous page button -->
+            <button @click="previousPage" 
+                    :disabled="currentPage === 0"
+                    class="w-8 h-8 rounded-lg bg-[#eeb163] hover:bg-[#e5a754]
+                           flex items-center justify-center p-2
+                           transition-colors duration-200 disabled:opacity-50">
+              <font-awesome-icon :icon="['fas', 'arrow-left']" class="text-sm text-white" />
+            </button>
             
-            <span class="font-stack text-2xl text-primary dark:text-teal-400 min-w-[120px] text-center">
+            <!-- Page counter -->
+            <span class="font-stack text-base text-[#030303] min-w-[80px] text-center">
               {{ currentPage + 1 }} / {{ storyPages.length }}
             </span>
             
-            <ion-button @click="nextPage" :disabled="currentPage === storyPages.length - 1"
-                      class="w-14 h-14 rounded-full !p-0 bg-primary dark:bg-teal-500
-                             hover:bg-primary-dark dark:hover:bg-teal-600 shadow-lg
-                             transition-all duration-300">
-              <font-awesome-icon :icon="['fas', 'arrow-right']" class="text-2xl" />
-            </ion-button>
+            <!-- Next page button -->
+            <button @click="nextPage" 
+                    :disabled="currentPage === storyPages.length - 1"
+                    class="w-8 h-8 rounded-lg bg-[#eeb163] hover:bg-[#e5a754]
+                           flex items-center justify-center p-2
+                           transition-colors duration-200 disabled:opacity-50">
+              <font-awesome-icon :icon="['fas', 'arrow-right']" class="text-sm text-white" />
+            </button>
           </div>
 
           <!-- Story content with decorative borders -->
           <div class="flex flex-col">
             <!-- Title styling -->
             <h2 v-if="currentPage === 0" 
-                class="text-3xl font-stack text-primary text-center mb-12
-                       dark:text-teal-400 ">
+                class="text-3xl font-stack text-[#eeb163] text-center mb-12">
               <span class="mx-auto block px-8 py-2 border-4 border-primary dark:border-teal-400 
                            rounded-lg bg-white dark:bg-gray-800">
                 {{ storyTitle }}
@@ -228,7 +352,7 @@
                             rounded-3xl p-6 border-4 border-primary dark:border-teal-400">
                   <div class="relative w-16 h-16 flex items-center justify-center">
                     <font-awesome-icon :icon="['fas', 'spinner']" 
-                                     class="text-3xl text-primary dark:text-teal-400 animate-spin" />
+                                     class="text-3xl text-[#eeb163] animate-spin" />
                   </div>
                   <p class="mt-4 text-gray-600 dark:text-gray-300 font-comic text-lg">
                     Generating illustration...
@@ -260,12 +384,24 @@
         <div v-if="submitted && storyPages.length > 0 && !isLoading" 
              class="fixed top-6 right-6 z-50 md:top-8 md:right-8 z-10">
           <ion-button @click="readPage"
-                    :color="isSpeaking ? 'danger' : 'primary'"
                     class="w-14 h-14 block rounded-full text-base shadow-lg hover:shadow-xl
                            transition-all duration-300"
+                    style="--background: #e9ebef; --color: #030303;
+                           --background-hover: #d1d5db;
+                           --border-radius: 9999px;
+                           --ripple-color: transparent;
+                           --background-activated: #e9ebef;
+                           --background-focused: #e9ebef;
+                           --background-activated-opacity: 1;
+                           --background-focused-opacity: 1;"
                     :disabled="!isAudioReady || isCurrentPageLoading">
-            <font-awesome-icon :icon="['fas', isSpeaking ? 'volume-xmark' : isAudioReady ? 'volume-high' : 'cloud-arrow-down']"
-                             class="z-20" />
+            <font-awesome-icon 
+                :icon="['fas', isSpeaking ? 'volume-xmark' : isAudioReady ? 'volume-high' : 'cloud-arrow-down']"
+                class="text-sm"
+                :style="{ 
+                  color: isSpeaking ? '#ef4444' : '#030303',
+                  padding: '8px'
+                }" />
           </ion-button>
         </div>
 
@@ -275,9 +411,9 @@
                     flex flex-col items-center justify-center z-50">
           <div class="relative w-24 h-24 flex items-center justify-center">
             <font-awesome-icon :icon="['fas', 'spinner']" 
-                             class="text-4xl text-primary dark:text-teal-400 animate-spin" />
+                             class="text-4xl text-[#eeb163] animate-spin" />
           </div>
-          <p class="mt-4 font-comic text-lg text-primary dark:text-teal-400">
+          <p class="mt-4 font-comic text-lg text-[#eeb163]">
             Creating your story...
           </p>
         </div>
@@ -312,7 +448,8 @@ import {
   faVolumeXmark,
   faCloudArrowDown,
   faArrowLeft,
-  faArrowRight
+  faArrowRight,
+  faBook,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { useRouter } from 'vue-router';
@@ -331,7 +468,8 @@ library.add(
   faVolumeXmark,
   faCloudArrowDown,
   faArrowLeft,
-  faArrowRight
+  faArrowRight,
+  faBook,
 );
 
 export default {
@@ -356,11 +494,11 @@ export default {
     // Pre-filled test data
     const heroName = ref('Luna');
     const heroGender = ref('girl');
-    const setting = ref('forêt magique');
-    const specialQuality = ref('peut parler aux animaux');
+    const setting = ref('magical forest');
+    const specialQuality = ref('can talk to animals');
     const theme = ref('friendship');
-    const language = ref('french'); // Default to French
-    const additionalDetails = ref('Elle a un pendentif magique qui brille quand les animaux sont proches. Elle aime aider les créatures perdues à retrouver leur chemin.');
+    const language = ref('english'); // Default to English
+    const additionalDetails = ref('She has a magical pendant that glows when animals are nearby. She loves helping lost creatures find their way home.');
     const submitted = ref(false);
     const story = ref('');
     const characters = ref([]);
@@ -373,6 +511,8 @@ export default {
     const illustrationStyle = ref('whimsical'); // Default style
     const shouldContinueReading = ref(false);
     const showForm = ref(false);
+    const showPromptModal = ref(false);
+    const currentStep = ref('gender');
     
     const API_KEY = import.meta.env.VITE_DREAMWEAVER_API_KEY;
     if (!API_KEY) {
@@ -445,27 +585,6 @@ export default {
 
     const getDetailedCharacterDescription = async () => {
       try {
-        const characterPrompt = `Create a detailed, consistent character description for a children's book illustration:
-
-Main Character Basic Info:
-- Name: ${heroName.value}
-- Gender: ${heroGender.value}
-- Special ability: ${specialQuality.value}
-- Setting: ${setting.value}
-- Additional details: ${additionalDetails.value}
-
-Please provide a detailed visual description including:
-1. Physical appearance (age, height, build)
-2. Facial features (eyes, smile, expressions)
-3. Hair style and color
-4. Clothing style and colors (signature outfit)
-5. Distinguishing accessories or items
-6. Personality reflected in posture and movement
-7. Special visual elements related to their ability
-8. Color palette associated with the character
-
-Format the description to be used as a reference for consistent illustration across multiple scenes.`;
-
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -476,18 +595,40 @@ Format the description to be used as a reference for consistent illustration acr
             model: "gpt-4o-mini",
             messages: [{
               role: "user",
-              content: characterPrompt
+              content: `Create a detailed physical description for a character named ${heroName.value} who ${specialQuality.value}. Return as JSON with these fields:
+                {
+                  "height_build": "description of height and build",
+                  "facial_features_skin_tone": "description of face and skin",
+                  "hair": "hair description",
+                  "eyes": "eyes description",
+                  "clothing_accessories": "clothing and accessories description",
+                  "distinguishing_features": "any unique features"
+                }
+                Make it child-friendly and match the character's gender (${heroGender.value}) and setting (${setting.value}).`
             }],
             temperature: 0.7,
-            max_tokens: 500
+            max_tokens: 500,
+            response_format: { type: "json_object" }
           })
         });
 
+        if (!response.ok) {
+          throw new Error('Failed to get character description');
+        }
+
         const data = await response.json();
-        return data.choices[0].message.content;
+        return JSON.parse(data.choices[0].message.content);
       } catch (error) {
-        console.error('Error generating character description:', error);
-        return null;
+        console.error('Error getting character description:', error);
+        // Return default description if there's an error
+        return {
+          height_build: "average height and build",
+          facial_features_skin_tone: "warm and friendly expression",
+          hair: "neatly styled hair",
+          eyes: "bright, expressive eyes",
+          clothing_accessories: "comfortable, age-appropriate clothing",
+          distinguishing_features: ""
+        };
       }
     };
 
@@ -513,9 +654,34 @@ Format the description to be used as a reference for consistent illustration acr
       }
     };
 
+    // Add sequential processing for audio pre-buffering
+    const preBufferAllPages = async () => {
+      try {
+        console.log('Starting audio pre-buffering for all pages...');
+        // Process pages sequentially instead of in parallel
+        for (let i = 0; i < storyPages.value.length; i++) {
+          try {
+            await ttsStore.preloadAudio(i, storyPages.value[i], language.value);
+            // Add delay between requests to avoid rate limiting
+            if (i < storyPages.value.length - 1) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          } catch (error) {
+            console.error(`Failed to pre-buffer audio for page ${i}:`, error);
+            // Continue with next page even if one fails
+          }
+        }
+        console.log('Audio pre-buffering complete');
+      } catch (error) {
+        console.error('Error during audio pre-buffering:', error);
+      }
+    };
 
-    // Update the generateAllImages function
+    // Update generateAllImages to properly handle characters
     const generateAllImages = async () => {
+      // Get detailed character description first
+      const characterDescription = await getDetailedCharacterDescription();
+      
       // Store original page number to restore it later
       const originalPage = currentPage.value;
       
@@ -528,12 +694,11 @@ Format the description to be used as a reference for consistent illustration acr
         manga: "anime"
       };
       
-      // Process each page sequentially without affecting display
+      // Process each page sequentially
       for (let pageIndex = 0; pageIndex < storyPages.value.length; pageIndex++) {
         try {
-          
-          // Generate image for this page using pageIndex directly
-          const response = await fetch('https://airticle-flow.com/dreamweaver/illustration', {
+          // Generate image for this page
+          const response = await fetch('https://airticle-flow.com/api/dreamweaver/illustration', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -548,7 +713,21 @@ Format the description to be used as a reference for consistent illustration acr
                 pages: storyPages.value
               },
               characters: {
-                characters: characters.value
+                characters: [{
+                  name: heroName.value,
+                  gender: heroGender.value,
+                  ability: specialQuality.value,
+                  setting: setting.value,
+                  details: additionalDetails.value,
+                  physical_description: {
+                    height_build: characterDescription.height_build || "average height and build",
+                    facial_features_skin_tone: characterDescription.facial_features_skin_tone || "warm and friendly expression",
+                    hair: characterDescription.hair || "neatly styled hair",
+                    eyes: characterDescription.eyes || "bright, expressive eyes",
+                    clothing_accessories: characterDescription.clothing_accessories || "comfortable, age-appropriate clothing",
+                    distinguishing_features: characterDescription.distinguishing_features || ""
+                  }
+                }]
               },
               art_style: artStyleMap[illustrationStyle.value] || "cartoon"
             })
@@ -571,16 +750,15 @@ Format the description to be used as a reference for consistent illustration acr
           pageImages.value[pageIndex] = null;
         }
       }
-      
-
     };
 
-    // Update the handleSubmit function
+    // Update handleSubmit to include pre-buffering
     const handleSubmit = async () => {
       try {
         console.log('Starting story creation process...');
         isLoading.value = true;
         submitted.value = true;
+        showForm.value = false; // Hide the form after submission
         
         const langPrompt = getStoryPrompt(language.value);
         console.log('Language prompt generated:', {
@@ -589,7 +767,7 @@ Format the description to be used as a reference for consistent illustration acr
         });
 
         // Use the new Dreamweaver API
-        const response = await fetch('https://airticle-flow.com/dreamweaver/summary', {
+        const response = await fetch('https://airticle-flow.com/api/dreamweaver/summary', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -607,7 +785,8 @@ Format the description to be used as a reference for consistent illustration acr
               details: additionalDetails.value
             },
             theme: theme.value,
-            format: langPrompt.format
+            format: langPrompt.format,
+            language: language.value
           })
         });
 
@@ -621,24 +800,32 @@ Format the description to be used as a reference for consistent illustration acr
         // Set the story title and pages from the API response
         storyTitle.value = storyData.title;
         storyPages.value = storyData.pages;
-        characters.value = storyData.characters;
+        
+        // Update character refs from the response
+        if (storyData.character) {
+          heroName.value = storyData.character.name || heroName.value;
+          heroGender.value = storyData.character.gender || heroGender.value;
+          setting.value = storyData.character.setting || setting.value;
+          specialQuality.value = storyData.character.ability || specialQuality.value;
+          additionalDetails.value = storyData.character.details || additionalDetails.value;
+        }
+        
+        if (storyData.theme) {
+          theme.value = storyData.theme;
+        }
+
         currentPage.value = 0;
         pageImages.value = {};
         
-        console.log('Story setup complete:', {
-          title: storyTitle.value,
-          pageCount: storyPages.value.length,
-          currentPage: currentPage.value,
-          characters: characters.value
-        });
-        
-        // Remove main loading spinner as soon as we have the story
+        // Remove main loading spinner
         isLoading.value = false;
         
-        // Start generating images in the background
-        console.log('Starting background image generation...');
-        generateAllImages().catch(error => {
-          console.error('Error generating images:', error);
+        // Start pre-buffering audio and generating images in parallel
+        Promise.all([
+          preBufferAllPages(),
+          generateAllImages()
+        ]).catch(error => {
+          console.error('Error in background tasks:', error);
         });
 
       } catch (error) {
@@ -706,19 +893,6 @@ Format the description to be used as a reference for consistent illustration acr
       }
     };
 
-    // Add this watch effect to handle speech completion
-    watch(() => ttsStore.isSpeaking, async (newValue, oldValue) => {
-      if (oldValue && !newValue && shouldContinueReading.value) {
-        // Speech finished and we should continue reading
-        if (currentPage.value < storyPages.value.length - 1) {
-          await nextPage();
-        } else {
-          // Reset when we reach the end
-          shouldContinueReading.value = false;
-        }
-      }
-    });
-
     // Update the readPage function
     const readPage = async () => {
       if (ttsStore.isSpeaking) {
@@ -729,10 +903,28 @@ Format the description to be used as a reference for consistent illustration acr
 
       try {
         shouldContinueReading.value = true;
+        // Check if audio is pre-buffered
+        if (!ttsStore.audioCache[currentPage.value]) {
+          // If not buffered (fallback), try to load it
+          await ttsStore.preloadAudio(
+            currentPage.value,
+            storyPages.value[currentPage.value],
+            language.value
+          );
+        }
+        
         await ttsStore.playAudio(
           currentPage.value,
           storyPages.value[currentPage.value],
-          language.value
+          language.value,
+          // Add callback for auto-progression
+          () => {
+            if (shouldContinueReading.value && currentPage.value < storyPages.value.length - 1) {
+              nextPage();
+            } else {
+              shouldContinueReading.value = false;
+            }
+          }
         );
       } catch (error) {
         console.error('Failed to read page:', error);
@@ -740,17 +932,6 @@ Format the description to be used as a reference for consistent illustration acr
         alert('Failed to generate speech. Please try again.');
       }
     };
-
-    // Watch for page changes to preload audio
-    watch(storyPages, async (newPages) => {
-      if (newPages.length > 0) {
-        // Pre-fetch first two pages
-        await ttsStore.preloadAudio(0, newPages[0], language.value);
-        if (newPages.length > 1) {
-          ttsStore.preloadAudio(1, newPages[1], language.value);
-        }
-      }
-    });
 
     // Clean up on unmount
     onUnmounted(() => {
@@ -862,6 +1043,66 @@ Format the description to be used as a reference for consistent illustration acr
       return prompts[lang] || prompts.english;
     };
 
+    const selectGender = (gender: string) => {
+      heroGender.value = gender;
+      currentStep.value = 'name';
+    };
+
+    const selectName = () => {
+      if (heroName.value.trim()) {
+        currentStep.value = 'setting';
+      }
+    };
+
+    const settingMap = {
+      magical_forest: 'magical forest',
+      space_station: 'space station',
+      underwater_city: 'underwater city',
+      castle: 'medieval castle'
+    };
+
+    const customSetting = ref('');
+
+    const selectSetting = (settingKey: string) => {
+      setting.value = settingMap[settingKey];
+      currentStep.value = 'optional';
+    };
+
+    const selectCustomSetting = () => {
+      if (customSetting.value.trim()) {
+        setting.value = customSetting.value.trim();
+        currentStep.value = 'optional';
+      }
+    };
+
+    const selectTheme = (selectedTheme: string) => {
+      theme.value = selectedTheme;
+    };
+
+    const startStoryCreation = () => {
+      currentStep.value = 'language';
+      language.value = 'english';
+    };
+
+    const selectLanguage = (selectedLanguage: string) => {
+      language.value = selectedLanguage;
+    };
+
+    // Add step navigation mapping
+    const stepOrder = ['gender', 'name', 'setting', 'optional', 'language'];
+
+    const goBack = () => {
+      const currentIndex = stepOrder.indexOf(currentStep.value);
+      if (currentIndex <= 0) {
+        // If we're at the first step, go back to main menu
+        showForm.value = false;
+        currentStep.value = 'gender'; // Reset to first step
+      } else {
+        // Otherwise go to previous step
+        currentStep.value = stepOrder[currentIndex - 1];
+      }
+    };
+
     return { 
       heroName,
       heroGender,
@@ -887,8 +1128,46 @@ Format the description to be used as a reference for consistent illustration acr
       shuffleStory,
       isAudioReady,
       isCurrentPageLoading,
-      isSpeaking
+      isSpeaking,
+      preBufferAllPages,
+      showPromptModal,
+      currentStep,
+      selectGender,
+      selectName,
+      selectSetting,
+      customSetting,
+      selectCustomSetting,
+      selectTheme,
+      startStoryCreation,
+      selectLanguage,
+      goBack,
     };
   }
 };
 </script>
+
+<style scoped>
+.container {
+  min-height: 100vh;
+}
+
+/* Update general ion-button styles */
+ion-button {
+  margin: 0;
+  --ripple-color: transparent;
+  --background-activated: var(--background);
+  --background-focused: var(--background);
+  --background-activated-opacity: 1;
+  --background-focused-opacity: 1;
+}
+
+ion-button::part(native) {
+  padding: 0;
+  height: 3.5rem;
+  -webkit-tap-highlight-color: transparent;
+}
+
+ion-button::part(native):focus {
+  outline: none;
+}
+</style>
